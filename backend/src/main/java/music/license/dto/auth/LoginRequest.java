@@ -1,5 +1,5 @@
 package music.license.dto.auth;
 
-public class LoguinRequest {
+public class LoginRequest {
     
 }
