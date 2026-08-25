@@ -1,5 +1,8 @@
 package music.license.repository;
 
-public class BeatRepository {
-    
+import music.license.model.Beat;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BeatRepository extends JpaRepository<Beat, Long> {
+
 }
