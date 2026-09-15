@@ -2,15 +2,20 @@ package music.license.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import music.license.model.ColaboradorBeat;
+import jakarta.validation.Valid;
+
+import music.license.dto.colaborador.ColaboradorBeatRequest;
+import music.license.dto.colaborador.ColaboradorBeatResponse;
 import music.license.service.ColaboradorBeatService;
 
 @RestController
@@ -24,21 +29,25 @@ public class ColaboradorBeatController {
     }
 
     @GetMapping
-    public List<ColaboradorBeat> obtenerTodos() {
-        return colaboradorBeatService.obtenerTodos();
+    public List<ColaboradorBeatResponse> obtenerTodos() {
+        return colaboradorBeatService.obtenerTodos().stream()
+                .map(ColaboradorBeatResponse::desde)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ColaboradorBeat obtenerPorId(@PathVariable Long id) {
-        return colaboradorBeatService.obtenerPorId(id);
+    public ColaboradorBeatResponse obtenerPorId(@PathVariable Long id) {
+        return ColaboradorBeatResponse.desde(colaboradorBeatService.obtenerPorId(id));
     }
 
     @PostMapping
-    public ColaboradorBeat crear(@RequestBody ColaboradorBeat colaboradorBeat) {
-        return colaboradorBeatService.guardar(colaboradorBeat);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ColaboradorBeatResponse crear(@Valid @RequestBody ColaboradorBeatRequest request) {
+        return ColaboradorBeatResponse.desde(colaboradorBeatService.crear(request));
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         colaboradorBeatService.eliminar(id);
     }

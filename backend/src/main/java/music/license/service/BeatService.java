@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import music.license.dto.beat.BeatRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Beat;
 import music.license.repository.BeatRepository;
@@ -30,15 +31,15 @@ public class BeatService {
         return beatRepository.save(beat);
     }
 
-    public Beat actualizar(Long id, Beat datosActualizados) {
+    public Beat actualizar(Long id, BeatRequest datosActualizados) {
         Beat beat = obtenerPorId(id);
 
         beat.setTitulo(datosActualizados.getTitulo());
         beat.setGenero(datosActualizados.getGenero());
         beat.setBpm(datosActualizados.getBpm());
         beat.setUrlPreview(datosActualizados.getUrlPreview());
-        beat.setEstado(datosActualizados.getEstado());
-        // productor no se reasigna via PUT: el dueño de un beat no cambia por edicion
+        // productor y estado no se reasignan via PUT: el dueño no cambia por edicion,
+        // y las transiciones de estado (publicar) tienen su propia regla de negocio
 
         return beatRepository.save(beat);
     }

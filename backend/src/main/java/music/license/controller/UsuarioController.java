@@ -4,12 +4,10 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import music.license.model.Usuario;
+import music.license.dto.usuario.UsuarioResponse;
 import music.license.service.UsuarioService;
 
 @RestController
@@ -23,17 +21,14 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<Usuario> obtenerTodos() {
-        return usuarioService.obtenerTodos();
+    public List<UsuarioResponse> obtenerTodos() {
+        return usuarioService.obtenerTodos().stream()
+                .map(UsuarioResponse::desde)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Usuario obtenerPorId(@PathVariable Long id) {
-        return usuarioService.obtenerPorId(id);
-    }
-
-    @PostMapping
-    public Usuario crear(@RequestBody Usuario usuario) {
-        return usuarioService.guardar(usuario);
+    public UsuarioResponse obtenerPorId(@PathVariable Long id) {
+        return UsuarioResponse.desde(usuarioService.obtenerPorId(id));
     }
 }

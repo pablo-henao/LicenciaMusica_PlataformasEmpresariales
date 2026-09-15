@@ -24,8 +24,4 @@ public class UsuarioService {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
     }
-
-    public Usuario guardar(Usuario usuario) {
-        return usuarioRepository.save(usuario);
-    }
 }

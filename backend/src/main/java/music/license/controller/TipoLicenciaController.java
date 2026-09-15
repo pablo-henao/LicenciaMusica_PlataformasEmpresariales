@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import music.license.model.TipoLicencia;
+import jakarta.validation.Valid;
+
+import music.license.dto.licencia.TipoLicenciaRequest;
+import music.license.dto.licencia.TipoLicenciaResponse;
 import music.license.service.TipoLicenciaService;
 
 @RestController
@@ -27,24 +30,26 @@ public class TipoLicenciaController {
     }
 
     @GetMapping
-    public List<TipoLicencia> obtenerTodos() {
-        return tipoLicenciaService.obtenerTodos();
+    public List<TipoLicenciaResponse> obtenerTodos() {
+        return tipoLicenciaService.obtenerTodos().stream()
+                .map(TipoLicenciaResponse::desde)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public TipoLicencia obtenerPorId(@PathVariable Long id) {
-        return tipoLicenciaService.obtenerPorId(id);
+    public TipoLicenciaResponse obtenerPorId(@PathVariable Long id) {
+        return TipoLicenciaResponse.desde(tipoLicenciaService.obtenerPorId(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TipoLicencia crear(@RequestBody TipoLicencia tipoLicencia) {
-        return tipoLicenciaService.guardar(tipoLicencia);
+    public TipoLicenciaResponse crear(@Valid @RequestBody TipoLicenciaRequest request) {
+        return TipoLicenciaResponse.desde(tipoLicenciaService.crear(request));
     }
 
     @PutMapping("/{id}")
-    public TipoLicencia actualizar(@PathVariable Long id, @RequestBody TipoLicencia tipoLicencia) {
-        return tipoLicenciaService.actualizar(id, tipoLicencia);
+    public TipoLicenciaResponse actualizar(@PathVariable Long id, @Valid @RequestBody TipoLicenciaRequest request) {
+        return TipoLicenciaResponse.desde(tipoLicenciaService.actualizar(id, request));
     }
 
     @DeleteMapping("/{id}")

@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import music.license.dto.beat.BeatRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Beat;
 import music.license.model.EstadoBeat;
@@ -84,19 +85,18 @@ class BeatServiceTest {
         when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
         when(beatRepository.save(beat)).thenReturn(beat);
 
-        Beat datosNuevos = new Beat();
+        BeatRequest datosNuevos = new BeatRequest();
         datosNuevos.setTitulo("Nuevo Titulo");
         datosNuevos.setGenero("Trap");
         datosNuevos.setBpm(140);
         datosNuevos.setUrlPreview("https://ejemplo.com/preview.mp3");
-        datosNuevos.setEstado(EstadoBeat.PUBLICADO);
 
         Beat resultado = beatService.actualizar(1L, datosNuevos);
 
         assertThat(resultado.getTitulo()).isEqualTo("Nuevo Titulo");
         assertThat(resultado.getGenero()).isEqualTo("Trap");
         assertThat(resultado.getBpm()).isEqualTo(140);
-        assertThat(resultado.getEstado()).isEqualTo(EstadoBeat.PUBLICADO);
+        assertThat(resultado.getEstado()).isEqualTo(EstadoBeat.BORRADOR);
         verify(beatRepository).save(beat);
     }
 
@@ -104,7 +104,7 @@ class BeatServiceTest {
     void actualizar_conIdInexistente_lanzaResourceNotFoundException() {
         when(beatRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> beatService.actualizar(99L, beat))
+        assertThatThrownBy(() -> beatService.actualizar(99L, new BeatRequest()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
