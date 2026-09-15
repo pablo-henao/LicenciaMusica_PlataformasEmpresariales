@@ -6,19 +6,33 @@ import org.springframework.stereotype.Service;
 
 import music.license.dto.beat.BeatRequest;
 import music.license.exception.ResourceNotFoundException;
+import music.license.model.AcuerdoCreditos;
 import music.license.model.Beat;
+import music.license.model.ColaboradorBeat;
+import music.license.model.EstadoAcuerdo;
+import music.license.model.EstadoBeat;
 import music.license.model.Rol;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
+import music.license.repository.ColaboradorBeatRepository;
 import music.license.security.AutorizacionUtil;
 
 @Service
 public class BeatService {
 
     private final BeatRepository beatRepository;
+    private final ColaboradorBeatRepository colaboradorBeatRepository;
+    private final AcuerdoCreditosRepository acuerdoCreditosRepository;
 
-    public BeatService(BeatRepository beatRepository) {
+    public BeatService(
+            BeatRepository beatRepository,
+            ColaboradorBeatRepository colaboradorBeatRepository,
+            AcuerdoCreditosRepository acuerdoCreditosRepository) {
+
         this.beatRepository = beatRepository;
+        this.colaboradorBeatRepository = colaboradorBeatRepository;
+        this.acuerdoCreditosRepository = acuerdoCreditosRepository;
     }
 
     public List<Beat> obtenerTodos() {
@@ -48,6 +62,33 @@ public class BeatService {
         // productor y estado no se reasignan via PUT: el dueño no cambia por edicion,
         // y las transiciones de estado (publicar) tienen su propia regla de negocio
 
+        return beatRepository.save(beat);
+    }
+
+    /**
+     * Un beat solo (sin colaboradores declarados) se publica libremente.
+     * Un beat con colaboradores necesita que su acuerdo de creditos este CERRADO,
+     * es decir, que todos hayan aceptado y el split sume exactamente 100%.
+     */
+    public Beat publicar(Long id, Usuario solicitante) {
+        Beat beat = obtenerPorId(id);
+        AutorizacionUtil.exigirPropietario(
+                beat.getProductor(), solicitante, "Solo el productor dueño del beat puede publicarlo");
+
+        List<ColaboradorBeat> colaboradores = colaboradorBeatRepository.findByBeatId(id);
+
+        if (!colaboradores.isEmpty()) {
+            AcuerdoCreditos acuerdo = acuerdoCreditosRepository.findByBeatId(id)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Este beat tiene colaboradores declarados pero no tiene un acuerdo de créditos abierto"));
+
+            if (acuerdo.getEstado() != EstadoAcuerdo.CERRADO) {
+                throw new IllegalStateException(
+                        "El acuerdo de créditos debe estar cerrado (100% aceptado por todos los colaboradores) antes de publicar");
+            }
+        }
+
+        beat.setEstado(EstadoBeat.PUBLICADO);
         return beatRepository.save(beat);
     }
 

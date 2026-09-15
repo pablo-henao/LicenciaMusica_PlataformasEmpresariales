@@ -57,6 +57,11 @@ public class AcuerdoCreditosService {
                 solicitante,
                 "Solo el productor dueño del beat puede eliminar el acuerdo de créditos");
 
+        if (acuerdoCreditos.getEstado() == EstadoAcuerdo.CERRADO) {
+            throw new IllegalStateException(
+                    "No se puede eliminar un acuerdo de créditos ya cerrado; agrega, edita o quita un colaborador para reabrirlo");
+        }
+
         acuerdoCreditosRepository.deleteById(id);
     }
 }

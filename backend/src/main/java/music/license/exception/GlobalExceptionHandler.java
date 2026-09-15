@@ -44,6 +44,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> manejarEstadoInvalido(IllegalStateException ex) {
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Operacion no permitida en el estado actual",
+                ex.getMessage(),
+                List.of());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> manejarCredencialesInvalidas(BadCredentialsException ex) {
         ApiError error = new ApiError(

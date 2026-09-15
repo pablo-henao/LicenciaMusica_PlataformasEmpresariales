@@ -19,17 +19,30 @@ import org.springframework.security.access.AccessDeniedException;
 
 import music.license.dto.beat.BeatRequest;
 import music.license.exception.ResourceNotFoundException;
+import music.license.model.AcuerdoCreditos;
 import music.license.model.Beat;
+import music.license.model.ColaboradorBeat;
+import music.license.model.EstadoAcuerdo;
 import music.license.model.EstadoBeat;
+import music.license.model.EstadoColaborador;
 import music.license.model.Rol;
+import music.license.model.RolColaborador;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
+import music.license.repository.ColaboradorBeatRepository;
 
 @ExtendWith(MockitoExtension.class)
 class BeatServiceTest {
 
     @Mock
     private BeatRepository beatRepository;
+
+    @Mock
+    private ColaboradorBeatRepository colaboradorBeatRepository;
+
+    @Mock
+    private AcuerdoCreditosRepository acuerdoCreditosRepository;
 
     @InjectMocks
     private BeatService beatService;
@@ -170,5 +183,78 @@ class BeatServiceTest {
 
         assertThatThrownBy(() -> beatService.eliminar(99L, productor))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void publicar_beatSinColaboradores_publicaLibremente() {
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of());
+        when(beatRepository.save(beat)).thenReturn(beat);
+
+        Beat resultado = beatService.publicar(1L, productor);
+
+        assertThat(resultado.getEstado()).isEqualTo(EstadoBeat.PUBLICADO);
+    }
+
+    @Test
+    void publicar_conUsuarioQueNoEsDuenio_lanzaAccessDeniedException() {
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+
+        assertThatThrownBy(() -> beatService.publicar(1L, otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(beatRepository, never()).save(beat);
+    }
+
+    @Test
+    void publicar_conColaboradoresYSinAcuerdo_lanzaIllegalStateException() {
+        ColaboradorBeat colaborador = new ColaboradorBeat();
+        colaborador.setEstado(EstadoColaborador.ACEPTADO);
+        colaborador.setRol(RolColaborador.VOCALISTA);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(colaborador));
+        when(acuerdoCreditosRepository.findByBeatId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> beatService.publicar(1L, productor))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(beatRepository, never()).save(beat);
+    }
+
+    @Test
+    void publicar_conAcuerdoAbierto_lanzaIllegalStateException() {
+        ColaboradorBeat colaborador = new ColaboradorBeat();
+        colaborador.setEstado(EstadoColaborador.ACEPTADO);
+
+        AcuerdoCreditos acuerdo = new AcuerdoCreditos();
+        acuerdo.setEstado(EstadoAcuerdo.ABIERTO);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(colaborador));
+        when(acuerdoCreditosRepository.findByBeatId(1L)).thenReturn(Optional.of(acuerdo));
+
+        assertThatThrownBy(() -> beatService.publicar(1L, productor))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(beatRepository, never()).save(beat);
+    }
+
+    @Test
+    void publicar_conAcuerdoCerrado_publica() {
+        ColaboradorBeat colaborador = new ColaboradorBeat();
+        colaborador.setEstado(EstadoColaborador.ACEPTADO);
+
+        AcuerdoCreditos acuerdo = new AcuerdoCreditos();
+        acuerdo.setEstado(EstadoAcuerdo.CERRADO);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(colaborador));
+        when(acuerdoCreditosRepository.findByBeatId(1L)).thenReturn(Optional.of(acuerdo));
+        when(beatRepository.save(beat)).thenReturn(beat);
+
+        Beat resultado = beatService.publicar(1L, productor);
+
+        assertThat(resultado.getEstado()).isEqualTo(EstadoBeat.PUBLICADO);
     }
 }
