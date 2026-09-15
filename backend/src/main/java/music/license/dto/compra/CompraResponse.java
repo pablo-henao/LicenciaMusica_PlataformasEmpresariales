@@ -15,12 +15,14 @@ public class CompraResponse {
     private BigDecimal precio;
     private LocalDateTime fecha;
     private String estado;
+    private boolean contratoDisponible;
 
     public static CompraResponse desde(Compra compra) {
         CompraResponse dto = new CompraResponse();
         dto.id = compra.getId();
         dto.fecha = compra.getFecha();
         dto.estado = compra.getEstado() != null ? compra.getEstado().name() : null;
+        dto.contratoDisponible = compra.getContratoPdf() != null;
 
         if (compra.getComprador() != null) {
             dto.compradorId = compra.getComprador().getId();
@@ -69,5 +71,9 @@ public class CompraResponse {
 
     public String getEstado() {
         return estado;
+    }
+
+    public boolean isContratoDisponible() {
+        return contratoDisponible;
     }
 }

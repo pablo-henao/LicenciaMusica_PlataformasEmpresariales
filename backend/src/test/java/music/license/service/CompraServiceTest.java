@@ -21,10 +21,13 @@ import org.springframework.security.access.AccessDeniedException;
 
 import music.license.dto.compra.CompraRequest;
 import music.license.exception.ResourceNotFoundException;
+import music.license.model.Beat;
 import music.license.model.Compra;
+import music.license.model.EstadoBeat;
 import music.license.model.EstadoCompra;
 import music.license.model.TipoLicencia;
 import music.license.model.Usuario;
+import music.license.pdf.ContratoPdfGenerator;
 import music.license.repository.CompraRepository;
 import music.license.repository.TipoLicenciaRepository;
 
@@ -37,18 +40,27 @@ class CompraServiceTest {
     @Mock
     private TipoLicenciaRepository tipoLicenciaRepository;
 
+    @Mock
+    private ContratoPdfGenerator contratoPdfGenerator;
+
     @InjectMocks
     private CompraService compraService;
 
+    private Beat beat;
     private TipoLicencia tipoLicencia;
     private Usuario comprador;
     private Usuario otroUsuario;
 
     @BeforeEach
     void setUp() {
+        beat = new Beat();
+        beat.setId(1L);
+        beat.setEstado(EstadoBeat.PUBLICADO);
+
         tipoLicencia = new TipoLicencia();
         tipoLicencia.setId(1L);
         tipoLicencia.setPrecio(new BigDecimal("50000"));
+        tipoLicencia.setBeat(beat);
 
         comprador = new Usuario();
         comprador.setId(2L);
@@ -58,7 +70,7 @@ class CompraServiceTest {
     }
 
     @Test
-    void crear_conTipoLicenciaExistente_quedaPendienteYAsociaComprador() {
+    void crear_conBeatPublicado_quedaPendienteYAsociaComprador() {
         CompraRequest request = new CompraRequest();
         request.setTipoLicenciaId(1L);
 
@@ -71,6 +83,21 @@ class CompraServiceTest {
         assertThat(resultado.getTipoLicencia()).isEqualTo(tipoLicencia);
         assertThat(resultado.getEstado()).isEqualTo(EstadoCompra.PENDIENTE);
         assertThat(resultado.getFecha()).isNotNull();
+    }
+
+    @Test
+    void crear_conBeatNoPublicado_lanzaIllegalStateException() {
+        beat.setEstado(EstadoBeat.BORRADOR);
+
+        CompraRequest request = new CompraRequest();
+        request.setTipoLicenciaId(1L);
+
+        when(tipoLicenciaRepository.findById(1L)).thenReturn(Optional.of(tipoLicencia));
+
+        assertThatThrownBy(() -> compraService.crear(request, comprador))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(compraRepository, never()).save(any());
     }
 
     @Test
@@ -123,10 +150,105 @@ class CompraServiceTest {
     }
 
     @Test
-    void eliminar_conDuenio_borra() {
+    void checkout_conCompraPendiente_generaContratoYQuedaCompletada() {
         Compra compra = new Compra();
         compra.setId(1L);
         compra.setComprador(comprador);
+        compra.setTipoLicencia(tipoLicencia);
+        compra.setEstado(EstadoCompra.PENDIENTE);
+
+        byte[] pdfSimulado = "PDF-SIMULADO".getBytes();
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+        when(contratoPdfGenerator.generar(compra)).thenReturn(pdfSimulado);
+        when(compraRepository.save(compra)).thenReturn(compra);
+
+        Compra resultado = compraService.checkout(1L, comprador);
+
+        assertThat(resultado.getEstado()).isEqualTo(EstadoCompra.COMPLETADA);
+        assertThat(resultado.getContratoPdf()).isEqualTo(pdfSimulado);
+    }
+
+    @Test
+    void checkout_conCompraYaCompletada_lanzaIllegalStateException() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.COMPLETADA);
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+
+        assertThatThrownBy(() -> compraService.checkout(1L, comprador))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(contratoPdfGenerator, never()).generar(any());
+    }
+
+    @Test
+    void checkout_conUsuarioQueNoEsElComprador_lanzaAccessDeniedException() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.PENDIENTE);
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+
+        assertThatThrownBy(() -> compraService.checkout(1L, otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(contratoPdfGenerator, never()).generar(any());
+    }
+
+    @Test
+    void obtenerContrato_conCompraCompletada_devuelveElPdfGuardado() {
+        byte[] pdfGuardado = "PDF-GUARDADO".getBytes();
+
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.COMPLETADA);
+        compra.setContratoPdf(pdfGuardado);
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+
+        byte[] resultado = compraService.obtenerContrato(1L, comprador);
+
+        assertThat(resultado).isEqualTo(pdfGuardado);
+    }
+
+    @Test
+    void obtenerContrato_conCompraAunPendiente_lanzaIllegalStateException() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.PENDIENTE);
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+
+        assertThatThrownBy(() -> compraService.obtenerContrato(1L, comprador))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void obtenerContrato_conUsuarioQueNoEsElComprador_lanzaAccessDeniedException() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.COMPLETADA);
+        compra.setContratoPdf("PDF".getBytes());
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+
+        assertThatThrownBy(() -> compraService.obtenerContrato(1L, otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void eliminar_conCompraPendiente_borra() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.PENDIENTE);
 
         when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
 
@@ -136,10 +258,26 @@ class CompraServiceTest {
     }
 
     @Test
+    void eliminar_conCompraCompletada_lanzaIllegalStateException() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.COMPLETADA);
+
+        when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
+
+        assertThatThrownBy(() -> compraService.eliminar(1L, comprador))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(compraRepository, never()).deleteById(1L);
+    }
+
+    @Test
     void eliminar_conUsuarioQueNoEsElComprador_lanzaAccessDeniedException() {
         Compra compra = new Compra();
         compra.setId(1L);
         compra.setComprador(comprador);
+        compra.setEstado(EstadoCompra.PENDIENTE);
 
         when(compraRepository.findById(1L)).thenReturn(Optional.of(compra));
 

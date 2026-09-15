@@ -36,4 +36,8 @@ public class Compra {
 
     @Enumerated(EnumType.STRING)
     private EstadoCompra estado;
+
+    // sin @Lob a proposito: en Postgres, byte[] simple mapea a "bytea" (columna normal),
+    // mientras que @Lob puede mapear a un large object (OID) segun el driver/dialecto
+    private byte[] contratoPdf;
 }
