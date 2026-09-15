@@ -13,6 +13,7 @@ import music.license.model.Usuario;
 import music.license.repository.BeatRepository;
 import music.license.repository.ColaboradorBeatRepository;
 import music.license.repository.UsuarioRepository;
+import music.license.security.AutorizacionUtil;
 
 @Service
 public class ColaboradorBeatService {
@@ -40,9 +41,12 @@ public class ColaboradorBeatService {
                 .orElseThrow(() -> new ResourceNotFoundException("Colaborador no encontrado"));
     }
 
-    public ColaboradorBeat crear(ColaboradorBeatRequest request) {
+    public ColaboradorBeat crear(ColaboradorBeatRequest request, Usuario solicitante) {
         Beat beat = beatRepository.findById(request.getBeatId())
                 .orElseThrow(() -> new ResourceNotFoundException("Beat no encontrado"));
+
+        AutorizacionUtil.exigirPropietario(
+                beat.getProductor(), solicitante, "Solo el productor dueño del beat puede invitar colaboradores");
 
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario colaborador no encontrado"));
@@ -58,10 +62,12 @@ public class ColaboradorBeatService {
         return colaboradorBeatRepository.save(colaboradorBeat);
     }
 
-    public void eliminar(Long id) {
-        if (!colaboradorBeatRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Colaborador no encontrado");
-        }
+    public void eliminar(Long id, Usuario solicitante) {
+        ColaboradorBeat colaboradorBeat = obtenerPorId(id);
+        AutorizacionUtil.exigirPropietario(
+                colaboradorBeat.getBeat().getProductor(),
+                solicitante,
+                "Solo el productor dueño del beat puede quitar colaboradores");
 
         colaboradorBeatRepository.deleteById(id);
     }

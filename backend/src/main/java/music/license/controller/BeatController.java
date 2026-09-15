@@ -56,17 +56,21 @@ public class BeatController {
         beat.setProductor(usuario);
         beat.setEstado(EstadoBeat.BORRADOR);
 
-        return BeatResponse.desde(beatService.guardar(beat));
+        return BeatResponse.desde(beatService.guardar(beat, usuario));
     }
 
     @PutMapping("/{id}")
-    public BeatResponse actualizar(@PathVariable Long id, @Valid @RequestBody BeatRequest request) {
-        return BeatResponse.desde(beatService.actualizar(id, request));
+    public BeatResponse actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody BeatRequest request,
+            @AuthenticationPrincipal Usuario usuario) {
+
+        return BeatResponse.desde(beatService.actualizar(id, request, usuario));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void eliminar(@PathVariable Long id) {
-        beatService.eliminar(id);
+    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        beatService.eliminar(id, usuario);
     }
 }

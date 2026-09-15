@@ -8,8 +8,10 @@ import music.license.dto.licencia.TipoLicenciaRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Beat;
 import music.license.model.TipoLicencia;
+import music.license.model.Usuario;
 import music.license.repository.BeatRepository;
 import music.license.repository.TipoLicenciaRepository;
+import music.license.security.AutorizacionUtil;
 
 @Service
 public class TipoLicenciaService {
@@ -31,9 +33,12 @@ public class TipoLicenciaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de licencia no encontrado"));
     }
 
-    public TipoLicencia crear(TipoLicenciaRequest request) {
+    public TipoLicencia crear(TipoLicenciaRequest request, Usuario solicitante) {
         Beat beat = beatRepository.findById(request.getBeatId())
                 .orElseThrow(() -> new ResourceNotFoundException("Beat no encontrado"));
+
+        AutorizacionUtil.exigirPropietario(
+                beat.getProductor(), solicitante, "Solo el productor dueño del beat puede definir sus licencias");
 
         TipoLicencia tipoLicencia = new TipoLicencia();
         tipoLicencia.setBeat(beat);
@@ -44,8 +49,12 @@ public class TipoLicenciaService {
         return tipoLicenciaRepository.save(tipoLicencia);
     }
 
-    public TipoLicencia actualizar(Long id, TipoLicenciaRequest datosActualizados) {
+    public TipoLicencia actualizar(Long id, TipoLicenciaRequest datosActualizados, Usuario solicitante) {
         TipoLicencia tipoLicencia = obtenerPorId(id);
+        AutorizacionUtil.exigirPropietario(
+                tipoLicencia.getBeat().getProductor(),
+                solicitante,
+                "Solo el productor dueño del beat puede editar esta licencia");
 
         tipoLicencia.setTipo(datosActualizados.getTipo());
         tipoLicencia.setPrecio(datosActualizados.getPrecio());
@@ -55,10 +64,12 @@ public class TipoLicenciaService {
         return tipoLicenciaRepository.save(tipoLicencia);
     }
 
-    public void eliminar(Long id) {
-        if (!tipoLicenciaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tipo de licencia no encontrado");
-        }
+    public void eliminar(Long id, Usuario solicitante) {
+        TipoLicencia tipoLicencia = obtenerPorId(id);
+        AutorizacionUtil.exigirPropietario(
+                tipoLicencia.getBeat().getProductor(),
+                solicitante,
+                "Solo el productor dueño del beat puede eliminar esta licencia");
 
         tipoLicenciaRepository.deleteById(id);
     }

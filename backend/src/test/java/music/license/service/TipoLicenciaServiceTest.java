@@ -3,6 +3,7 @@ package music.license.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,12 +17,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import music.license.dto.licencia.TipoLicenciaRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Beat;
 import music.license.model.TipoLicencia;
 import music.license.model.TipoLicenciaEnum;
+import music.license.model.Usuario;
 import music.license.repository.BeatRepository;
 import music.license.repository.TipoLicenciaRepository;
 
@@ -39,12 +42,21 @@ class TipoLicenciaServiceTest {
 
     private TipoLicencia licencia;
     private Beat beat;
+    private Usuario productor;
+    private Usuario otroUsuario;
 
     @BeforeEach
     void setUp() {
+        productor = new Usuario();
+        productor.setId(10L);
+
+        otroUsuario = new Usuario();
+        otroUsuario.setId(20L);
+
         beat = new Beat();
         beat.setId(1L);
         beat.setTitulo("Sueños de Medallo");
+        beat.setProductor(productor);
 
         licencia = new TipoLicencia();
         licencia.setId(1L);
@@ -81,7 +93,7 @@ class TipoLicenciaServiceTest {
     }
 
     @Test
-    void crear_conBeatExistente_asociaElBeatYPersiste() {
+    void crear_conDuenioDelBeat_asociaElBeatYPersiste() {
         TipoLicenciaRequest request = new TipoLicenciaRequest();
         request.setBeatId(1L);
         request.setTipo(TipoLicenciaEnum.EXCLUSIVA);
@@ -91,11 +103,24 @@ class TipoLicenciaServiceTest {
         when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
         when(tipoLicenciaRepository.save(any(TipoLicencia.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        TipoLicencia resultado = tipoLicenciaService.crear(request);
+        TipoLicencia resultado = tipoLicenciaService.crear(request, productor);
 
         assertThat(resultado.getBeat()).isEqualTo(beat);
         assertThat(resultado.getTipo()).isEqualTo(TipoLicenciaEnum.EXCLUSIVA);
         assertThat(resultado.getPrecio()).isEqualByComparingTo("200000");
+    }
+
+    @Test
+    void crear_conUsuarioQueNoEsDuenioDelBeat_lanzaAccessDeniedException() {
+        TipoLicenciaRequest request = new TipoLicenciaRequest();
+        request.setBeatId(1L);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+
+        assertThatThrownBy(() -> tipoLicenciaService.crear(request, otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(tipoLicenciaRepository, never()).save(any());
     }
 
     @Test
@@ -105,12 +130,12 @@ class TipoLicenciaServiceTest {
 
         when(beatRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> tipoLicenciaService.crear(request))
+        assertThatThrownBy(() -> tipoLicenciaService.crear(request, productor))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void actualizar_modificaTipoPrecioYCondiciones() {
+    void actualizar_conDuenioDelBeat_modificaTipoPrecioYCondiciones() {
         when(tipoLicenciaRepository.findById(1L)).thenReturn(Optional.of(licencia));
         when(tipoLicenciaRepository.save(licencia)).thenReturn(licencia);
 
@@ -119,7 +144,7 @@ class TipoLicenciaServiceTest {
         nuevosDatos.setPrecio(new BigDecimal("300000"));
         nuevosDatos.setCondiciones("Uso comercial completo, derechos exclusivos");
 
-        TipoLicencia resultado = tipoLicenciaService.actualizar(1L, nuevosDatos);
+        TipoLicencia resultado = tipoLicenciaService.actualizar(1L, nuevosDatos, productor);
 
         assertThat(resultado.getTipo()).isEqualTo(TipoLicenciaEnum.EXCLUSIVA);
         assertThat(resultado.getPrecio()).isEqualByComparingTo("300000");
@@ -127,19 +152,39 @@ class TipoLicenciaServiceTest {
     }
 
     @Test
-    void eliminar_conIdExistente_borra() {
-        when(tipoLicenciaRepository.existsById(1L)).thenReturn(true);
+    void actualizar_conUsuarioQueNoEsDuenioDelBeat_lanzaAccessDeniedException() {
+        when(tipoLicenciaRepository.findById(1L)).thenReturn(Optional.of(licencia));
 
-        tipoLicenciaService.eliminar(1L);
+        assertThatThrownBy(() -> tipoLicenciaService.actualizar(1L, new TipoLicenciaRequest(), otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(tipoLicenciaRepository, never()).save(any());
+    }
+
+    @Test
+    void eliminar_conDuenioDelBeat_borra() {
+        when(tipoLicenciaRepository.findById(1L)).thenReturn(Optional.of(licencia));
+
+        tipoLicenciaService.eliminar(1L, productor);
 
         verify(tipoLicenciaRepository).deleteById(1L);
     }
 
     @Test
-    void eliminar_conIdInexistente_lanzaExcepcion() {
-        when(tipoLicenciaRepository.existsById(99L)).thenReturn(false);
+    void eliminar_conUsuarioQueNoEsDuenioDelBeat_lanzaAccessDeniedException() {
+        when(tipoLicenciaRepository.findById(1L)).thenReturn(Optional.of(licencia));
 
-        assertThatThrownBy(() -> tipoLicenciaService.eliminar(99L))
+        assertThatThrownBy(() -> tipoLicenciaService.eliminar(1L, otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(tipoLicenciaRepository, never()).deleteById(1L);
+    }
+
+    @Test
+    void eliminar_conIdInexistente_lanzaExcepcion() {
+        when(tipoLicenciaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> tipoLicenciaService.eliminar(99L, productor))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

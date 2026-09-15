@@ -3,6 +3,7 @@ package music.license.controller;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 
 import music.license.dto.acuerdo.AcuerdoCreditosRequest;
 import music.license.dto.acuerdo.AcuerdoCreditosResponse;
+import music.license.model.Usuario;
 import music.license.service.AcuerdoCreditosService;
 
 @RestController
@@ -42,13 +44,16 @@ public class AcuerdoCreditosController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AcuerdoCreditosResponse crear(@Valid @RequestBody AcuerdoCreditosRequest request) {
-        return AcuerdoCreditosResponse.desde(acuerdoCreditosService.crear(request));
+    public AcuerdoCreditosResponse crear(
+            @Valid @RequestBody AcuerdoCreditosRequest request,
+            @AuthenticationPrincipal Usuario usuario) {
+
+        return AcuerdoCreditosResponse.desde(acuerdoCreditosService.crear(request, usuario));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void eliminar(@PathVariable Long id) {
-        acuerdoCreditosService.eliminar(id);
+    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        acuerdoCreditosService.eliminar(id, usuario);
     }
 }

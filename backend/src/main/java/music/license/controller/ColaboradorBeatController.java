@@ -3,6 +3,7 @@ package music.license.controller;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 
 import music.license.dto.colaborador.ColaboradorBeatRequest;
 import music.license.dto.colaborador.ColaboradorBeatResponse;
+import music.license.model.Usuario;
 import music.license.service.ColaboradorBeatService;
 
 @RestController
@@ -42,13 +44,16 @@ public class ColaboradorBeatController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ColaboradorBeatResponse crear(@Valid @RequestBody ColaboradorBeatRequest request) {
-        return ColaboradorBeatResponse.desde(colaboradorBeatService.crear(request));
+    public ColaboradorBeatResponse crear(
+            @Valid @RequestBody ColaboradorBeatRequest request,
+            @AuthenticationPrincipal Usuario usuario) {
+
+        return ColaboradorBeatResponse.desde(colaboradorBeatService.crear(request, usuario));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void eliminar(@PathVariable Long id) {
-        colaboradorBeatService.eliminar(id);
+    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        colaboradorBeatService.eliminar(id, usuario);
     }
 }

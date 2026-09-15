@@ -31,15 +31,15 @@ public class CompraController {
     }
 
     @GetMapping
-    public List<CompraResponse> obtenerTodas() {
-        return compraService.obtenerTodas().stream()
+    public List<CompraResponse> obtenerTodas(@AuthenticationPrincipal Usuario usuario) {
+        return compraService.obtenerTodas(usuario).stream()
                 .map(CompraResponse::desde)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public CompraResponse obtenerPorId(@PathVariable Long id) {
-        return CompraResponse.desde(compraService.obtenerPorId(id));
+    public CompraResponse obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        return CompraResponse.desde(compraService.obtenerPorId(id, usuario));
     }
 
     @PostMapping
@@ -50,7 +50,7 @@ public class CompraController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void eliminar(@PathVariable Long id) {
-        compraService.eliminar(id);
+    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        compraService.eliminar(id, usuario);
     }
 }

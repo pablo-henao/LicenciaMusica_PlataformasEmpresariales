@@ -13,6 +13,7 @@ import music.license.model.TipoLicencia;
 import music.license.model.Usuario;
 import music.license.repository.CompraRepository;
 import music.license.repository.TipoLicenciaRepository;
+import music.license.security.AutorizacionUtil;
 
 @Service
 public class CompraService {
@@ -25,13 +26,23 @@ public class CompraService {
         this.tipoLicenciaRepository = tipoLicenciaRepository;
     }
 
-    public List<Compra> obtenerTodas() {
-        return compraRepository.findAll();
+    /**
+     * De momento equivale a "mis compras": no existe un rol admin que justifique
+     * ver las compras de todos los usuarios. El bloque de catalogo/historial
+     * puede ampliar esto con paginacion y una vista para el productor vendedor.
+     */
+    public List<Compra> obtenerTodas(Usuario solicitante) {
+        return compraRepository.findByCompradorId(solicitante.getId());
     }
 
-    public Compra obtenerPorId(Long id) {
-        return compraRepository.findById(id)
+    public Compra obtenerPorId(Long id, Usuario solicitante) {
+        Compra compra = compraRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada"));
+
+        AutorizacionUtil.exigirPropietario(
+                compra.getComprador(), solicitante, "Solo el comprador puede ver esta compra");
+
+        return compra;
     }
 
     public Compra crear(CompraRequest request, Usuario comprador) {
@@ -48,10 +59,12 @@ public class CompraService {
         return compraRepository.save(compra);
     }
 
-    public void eliminar(Long id) {
-        if (!compraRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Compra no encontrada");
-        }
+    public void eliminar(Long id, Usuario solicitante) {
+        Compra compra = compraRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada"));
+
+        AutorizacionUtil.exigirPropietario(
+                compra.getComprador(), solicitante, "Solo el comprador puede eliminar esta compra");
 
         compraRepository.deleteById(id);
     }
