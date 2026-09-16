@@ -12,6 +12,7 @@ import music.license.model.Compra;
 import music.license.model.EstadoBeat;
 import music.license.model.EstadoCompra;
 import music.license.model.TipoLicencia;
+import music.license.model.TipoNotificacion;
 import music.license.model.Usuario;
 import music.license.pdf.ContratoPdfGenerator;
 import music.license.repository.CompraRepository;
@@ -24,15 +25,18 @@ public class CompraService {
     private final CompraRepository compraRepository;
     private final TipoLicenciaRepository tipoLicenciaRepository;
     private final ContratoPdfGenerator contratoPdfGenerator;
+    private final NotificacionService notificacionService;
 
     public CompraService(
             CompraRepository compraRepository,
             TipoLicenciaRepository tipoLicenciaRepository,
-            ContratoPdfGenerator contratoPdfGenerator) {
+            ContratoPdfGenerator contratoPdfGenerator,
+            NotificacionService notificacionService) {
 
         this.compraRepository = compraRepository;
         this.tipoLicenciaRepository = tipoLicenciaRepository;
         this.contratoPdfGenerator = contratoPdfGenerator;
+        this.notificacionService = notificacionService;
     }
 
     /**
@@ -91,7 +95,17 @@ public class CompraService {
         compra.setContratoPdf(contrato);
         compra.setEstado(EstadoCompra.COMPLETADA);
 
-        return compraRepository.save(compra);
+        Compra guardada = compraRepository.save(compra);
+
+        String tituloBeat = compra.getTipoLicencia().getBeat().getTitulo();
+
+        notificacionService.crear(compra.getComprador(), TipoNotificacion.COMPRA_COMPLETADA,
+                "Tu compra de la licencia de \"" + tituloBeat + "\" se completó. Ya puedes descargar el contrato");
+
+        notificacionService.crear(compra.getTipoLicencia().getBeat().getProductor(), TipoNotificacion.COMPRA_COMPLETADA,
+                compra.getComprador().getNombre() + " compró una licencia de \"" + tituloBeat + "\"");
+
+        return guardada;
     }
 
     public byte[] obtenerContrato(Long id, Usuario solicitante) {

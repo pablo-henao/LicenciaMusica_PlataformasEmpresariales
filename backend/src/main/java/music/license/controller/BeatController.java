@@ -41,16 +41,17 @@ public class BeatController {
     }
 
     /**
-     * Catalogo publico: solo beats publicados, filtrable por genero/bpm y paginado.
+     * Catalogo publico: solo beats publicados, filtrable por genero/bpm/titulo y paginado.
      */
     @GetMapping
     public PaginaResponse<BeatResponse> obtenerCatalogo(
             @RequestParam(required = false) String genero,
             @RequestParam(required = false) Integer bpmMin,
             @RequestParam(required = false) Integer bpmMax,
+            @RequestParam(required = false) String titulo,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<Beat> pagina = beatService.buscarCatalogo(genero, bpmMin, bpmMax, pageable);
+        Page<Beat> pagina = beatService.buscarCatalogo(genero, bpmMin, bpmMax, titulo, pageable);
         return PaginaResponse.desde(pagina, BeatResponse::desde);
     }
 

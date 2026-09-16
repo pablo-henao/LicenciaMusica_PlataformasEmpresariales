@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import music.license.dto.auth.AuthResponse;
 import music.license.dto.auth.LoginRequest;
 import music.license.dto.auth.RegisterRequest;
+import music.license.model.Rol;
 import music.license.model.Usuario;
 import music.license.repository.UsuarioRepository;
 import music.license.security.JwtService;
@@ -29,6 +30,12 @@ public class AuthService {
     }
 
     public AuthResponse registrar(RegisterRequest request) {
+
+        if (request.getRol() == Rol.ADMIN) {
+            // el rol admin no se autoasigna por registro publico; se crea manualmente
+            // (o desde un flujo aparte, fuera del alcance de este endpoint)
+            throw new IllegalArgumentException("No se puede registrar un administrador desde este endpoint");
+        }
 
         if (usuarioRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("El email ya esta registrado");

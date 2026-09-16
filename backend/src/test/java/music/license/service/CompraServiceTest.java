@@ -3,6 +3,7 @@ package music.license.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,7 @@ import music.license.model.Compra;
 import music.license.model.EstadoBeat;
 import music.license.model.EstadoCompra;
 import music.license.model.TipoLicencia;
+import music.license.model.TipoNotificacion;
 import music.license.model.Usuario;
 import music.license.pdf.ContratoPdfGenerator;
 import music.license.repository.CompraRepository;
@@ -47,6 +49,9 @@ class CompraServiceTest {
     @Mock
     private ContratoPdfGenerator contratoPdfGenerator;
 
+    @Mock
+    private NotificacionService notificacionService;
+
     @InjectMocks
     private CompraService compraService;
 
@@ -54,12 +59,18 @@ class CompraServiceTest {
     private TipoLicencia tipoLicencia;
     private Usuario comprador;
     private Usuario otroUsuario;
+    private Usuario productor;
 
     @BeforeEach
     void setUp() {
+        productor = new Usuario();
+        productor.setId(5L);
+        productor.setNombre("Productor Test");
+
         beat = new Beat();
         beat.setId(1L);
         beat.setEstado(EstadoBeat.PUBLICADO);
+        beat.setProductor(productor);
 
         tipoLicencia = new TipoLicencia();
         tipoLicencia.setId(1L);
@@ -174,6 +185,9 @@ class CompraServiceTest {
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoCompra.COMPLETADA);
         assertThat(resultado.getContratoPdf()).isEqualTo(pdfSimulado);
+
+        verify(notificacionService).crear(eq(comprador), eq(TipoNotificacion.COMPRA_COMPLETADA), any());
+        verify(notificacionService).crear(eq(productor), eq(TipoNotificacion.COMPRA_COMPLETADA), any());
     }
 
     @Test

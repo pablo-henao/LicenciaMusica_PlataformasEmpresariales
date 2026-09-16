@@ -3,6 +3,7 @@ package music.license.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,6 +33,7 @@ import music.license.model.EstadoAcuerdo;
 import music.license.model.EstadoColaborador;
 import music.license.model.RolColaborador;
 import music.license.model.TipoEventoAcuerdo;
+import music.license.model.TipoNotificacion;
 import music.license.model.Usuario;
 import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
@@ -56,6 +58,9 @@ class ColaboradorBeatServiceTest {
 
     @Mock
     private AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
+
+    @Mock
+    private NotificacionService notificacionService;
 
     @InjectMocks
     private ColaboradorBeatService colaboradorBeatService;
@@ -110,6 +115,8 @@ class ColaboradorBeatServiceTest {
         assertThat(evento.getTipo()).isEqualTo(TipoEventoAcuerdo.PROPUESTA);
         assertThat(evento.getUsuario()).isEqualTo(productor);
         assertThat(evento.getBeat()).isEqualTo(beat);
+
+        verify(notificacionService).crear(eq(invitado), eq(TipoNotificacion.INVITACION_COLABORACION), any());
     }
 
     @Test
@@ -241,6 +248,8 @@ class ColaboradorBeatServiceTest {
                 .map(AcuerdoCreditosEvento::getTipo)
                 .toList();
         assertThat(tipos).containsExactly(TipoEventoAcuerdo.ACEPTACION, TipoEventoAcuerdo.CIERRE);
+
+        verify(notificacionService).crear(eq(productor), eq(TipoNotificacion.ACEPTACION_COLABORACION), any());
     }
 
     @Test

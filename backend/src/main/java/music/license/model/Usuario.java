@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -32,6 +33,10 @@ public class Usuario implements UserDetails {
 
     private String nombre;
 
+    // unique a nivel de BD, no solo en AuthService.registrar: sin esto, dos registros
+    // concurrentes con el mismo email podian pasar el chequeo existsByEmail() antes
+    // de que cualquiera de los dos hiciera commit (race condition)
+    @Column(unique = true, nullable = false)
     private String email;
 
     // CRITICO: sin @JsonIgnore, Jackson serializa este campo como "passwordHash"

@@ -44,10 +44,12 @@ public class BeatService {
     }
 
     /**
-     * El catalogo publico: solo beats PUBLICADO, con filtro opcional de genero/bpm y paginado.
+     * El catalogo publico: solo beats PUBLICADO, con filtro opcional de genero/bpm/titulo y paginado.
      */
-    public Page<Beat> buscarCatalogo(String genero, Integer bpmMin, Integer bpmMax, Pageable pageable) {
-        return beatRepository.buscarCatalogo(EstadoBeat.PUBLICADO, genero, bpmMin, bpmMax, pageable);
+    public Page<Beat> buscarCatalogo(
+            String genero, Integer bpmMin, Integer bpmMax, String titulo, Pageable pageable) {
+
+        return beatRepository.buscarCatalogo(EstadoBeat.PUBLICADO, genero, bpmMin, bpmMax, titulo, pageable);
     }
 
     /**

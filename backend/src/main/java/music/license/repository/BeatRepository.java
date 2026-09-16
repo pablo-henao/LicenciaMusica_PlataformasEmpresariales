@@ -17,12 +17,14 @@ public interface BeatRepository extends JpaRepository<Beat, Long> {
             AND (:genero IS NULL OR LOWER(b.genero) = LOWER(:genero))
             AND (:bpmMin IS NULL OR b.bpm >= :bpmMin)
             AND (:bpmMax IS NULL OR b.bpm <= :bpmMax)
+            AND (:titulo IS NULL OR LOWER(b.titulo) LIKE LOWER(CONCAT('%', :titulo, '%')))
             """)
     Page<Beat> buscarCatalogo(
             @Param("estado") EstadoBeat estado,
             @Param("genero") String genero,
             @Param("bpmMin") Integer bpmMin,
             @Param("bpmMax") Integer bpmMax,
+            @Param("titulo") String titulo,
             Pageable pageable);
 
     Page<Beat> findByProductorId(Long productorId, Pageable pageable);

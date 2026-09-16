@@ -65,6 +65,14 @@ class AuthServiceTest {
     }
 
     @Test
+    void registrar_conRolAdmin_lanzaIllegalArgumentException() {
+        RegisterRequest request = new RegisterRequest("Juan", "juan@upb.edu.co", "clave123", Rol.ADMIN);
+
+        assertThatThrownBy(() -> authService.registrar(request))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void login_conCredencialesCorrectas_devuelveToken() {
         LoginRequest request = new LoginRequest("juan@upb.edu.co", "clave123");
 

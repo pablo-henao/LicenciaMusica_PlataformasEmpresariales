@@ -2,5 +2,6 @@ package music.license.model;
 
 public enum Rol {
     PRODUCTOR,
-    COMPRADOR
+    COMPRADOR,
+    ADMIN
 }

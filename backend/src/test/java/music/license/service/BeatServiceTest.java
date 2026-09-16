@@ -85,9 +85,10 @@ class BeatServiceTest {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Beat> pagina = new PageImpl<>(List.of(beat));
 
-        when(beatRepository.buscarCatalogo(EstadoBeat.PUBLICADO, "Trap", 90, 100, pageable)).thenReturn(pagina);
+        when(beatRepository.buscarCatalogo(EstadoBeat.PUBLICADO, "Trap", 90, 100, "Sueños", pageable))
+                .thenReturn(pagina);
 
-        Page<Beat> resultado = beatService.buscarCatalogo("Trap", 90, 100, pageable);
+        Page<Beat> resultado = beatService.buscarCatalogo("Trap", 90, 100, "Sueños", pageable);
 
         assertThat(resultado.getContent()).containsExactly(beat);
     }

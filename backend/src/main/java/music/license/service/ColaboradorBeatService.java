@@ -15,6 +15,7 @@ import music.license.model.ColaboradorBeat;
 import music.license.model.EstadoAcuerdo;
 import music.license.model.EstadoColaborador;
 import music.license.model.TipoEventoAcuerdo;
+import music.license.model.TipoNotificacion;
 import music.license.model.Usuario;
 import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
@@ -31,19 +32,22 @@ public class ColaboradorBeatService {
     private final UsuarioRepository usuarioRepository;
     private final AcuerdoCreditosRepository acuerdoCreditosRepository;
     private final AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
+    private final NotificacionService notificacionService;
 
     public ColaboradorBeatService(
             ColaboradorBeatRepository colaboradorBeatRepository,
             BeatRepository beatRepository,
             UsuarioRepository usuarioRepository,
             AcuerdoCreditosRepository acuerdoCreditosRepository,
-            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository) {
+            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository,
+            NotificacionService notificacionService) {
 
         this.colaboradorBeatRepository = colaboradorBeatRepository;
         this.beatRepository = beatRepository;
         this.usuarioRepository = usuarioRepository;
         this.acuerdoCreditosRepository = acuerdoCreditosRepository;
         this.acuerdoCreditosEventoRepository = acuerdoCreditosEventoRepository;
+        this.notificacionService = notificacionService;
     }
 
     public List<ColaboradorBeat> obtenerTodos() {
@@ -78,6 +82,10 @@ public class ColaboradorBeatService {
         registrarEvento(beat, solicitante, TipoEventoAcuerdo.PROPUESTA,
                 "Propuso a " + usuario.getNombre() + " como " + request.getRol()
                         + " con " + request.getPorcentajePropuesto() + "%");
+
+        notificacionService.crear(usuario, TipoNotificacion.INVITACION_COLABORACION,
+                solicitante.getNombre() + " te invitó a colaborar en \"" + beat.getTitulo()
+                        + "\" como " + request.getRol() + " (" + request.getPorcentajePropuesto() + "%)");
 
         reabrirAcuerdoYReiniciarAceptaciones(beat, solicitante);
 
@@ -122,6 +130,9 @@ public class ColaboradorBeatService {
                 "Aceptó su propuesta como " + colaboradorBeat.getRol()
                         + " con " + colaboradorBeat.getPorcentajePropuesto() + "%");
 
+        notificacionService.crear(colaboradorBeat.getBeat().getProductor(), TipoNotificacion.ACEPTACION_COLABORACION,
+                solicitante.getNombre() + " aceptó colaborar en \"" + colaboradorBeat.getBeat().getTitulo() + "\"");
+
         cerrarAcuerdoSiCorresponde(acuerdo, solicitante);
 
         return guardado;
@@ -140,6 +151,9 @@ public class ColaboradorBeatService {
         registrarEvento(colaboradorBeat.getBeat(), solicitante, TipoEventoAcuerdo.RECHAZO,
                 "Rechazó su propuesta como " + colaboradorBeat.getRol()
                         + " con " + colaboradorBeat.getPorcentajePropuesto() + "%");
+
+        notificacionService.crear(colaboradorBeat.getBeat().getProductor(), TipoNotificacion.RECHAZO_COLABORACION,
+                solicitante.getNombre() + " rechazó colaborar en \"" + colaboradorBeat.getBeat().getTitulo() + "\"");
 
         return guardado;
     }
