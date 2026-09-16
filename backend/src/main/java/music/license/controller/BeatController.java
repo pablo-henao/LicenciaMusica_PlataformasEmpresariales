@@ -17,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
 
+import music.license.dto.acuerdo.AcuerdoCreditosEventoResponse;
 import music.license.dto.beat.BeatRequest;
 import music.license.dto.beat.BeatResponse;
 import music.license.dto.common.PaginaResponse;
@@ -100,5 +103,18 @@ public class BeatController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
         beatService.eliminar(id, usuario);
+    }
+
+    /**
+     * Historial de quien propuso, acepto, rechazo o modifico el acuerdo de creditos del beat.
+     * Visible solo para el productor dueño y los colaboradores invitados.
+     */
+    @GetMapping("/{id}/historial-creditos")
+    public List<AcuerdoCreditosEventoResponse> obtenerHistorialCreditos(
+            @PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+
+        return beatService.obtenerHistorialCreditos(id, usuario).stream()
+                .map(AcuerdoCreditosEventoResponse::desde)
+                .toList();
     }
 }

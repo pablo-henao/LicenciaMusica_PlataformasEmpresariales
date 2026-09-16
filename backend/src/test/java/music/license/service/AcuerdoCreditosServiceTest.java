@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,9 +21,12 @@ import org.springframework.security.access.AccessDeniedException;
 import music.license.dto.acuerdo.AcuerdoCreditosRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.AcuerdoCreditos;
+import music.license.model.AcuerdoCreditosEvento;
 import music.license.model.Beat;
 import music.license.model.EstadoAcuerdo;
+import music.license.model.TipoEventoAcuerdo;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
 
@@ -34,6 +38,9 @@ class AcuerdoCreditosServiceTest {
 
     @Mock
     private BeatRepository beatRepository;
+
+    @Mock
+    private AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
 
     @InjectMocks
     private AcuerdoCreditosService acuerdoCreditosService;
@@ -68,6 +75,24 @@ class AcuerdoCreditosServiceTest {
         assertThat(resultado.getBeat()).isEqualTo(beat);
         assertThat(resultado.getEstado()).isEqualTo(EstadoAcuerdo.ABIERTO);
         assertThat(resultado.getFechaCierre()).isNull();
+    }
+
+    @Test
+    void crear_registraUnEventoDeTipoAbierto() {
+        AcuerdoCreditosRequest request = new AcuerdoCreditosRequest();
+        request.setBeatId(1L);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(acuerdoCreditosRepository.save(any(AcuerdoCreditos.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        acuerdoCreditosService.crear(request, productor);
+
+        ArgumentCaptor<AcuerdoCreditosEvento> captor = ArgumentCaptor.forClass(AcuerdoCreditosEvento.class);
+        verify(acuerdoCreditosEventoRepository).save(captor.capture());
+
+        assertThat(captor.getValue().getTipo()).isEqualTo(TipoEventoAcuerdo.ABIERTO);
+        assertThat(captor.getValue().getUsuario()).isEqualTo(productor);
+        assertThat(captor.getValue().getBeat()).isEqualTo(beat);
     }
 
     @Test

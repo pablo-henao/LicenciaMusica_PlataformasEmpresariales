@@ -1,10 +1,9 @@
 package music.license.controller;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import music.license.dto.usuario.UsuarioResponse;
@@ -20,15 +19,18 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    @GetMapping
-    public List<UsuarioResponse> obtenerTodos() {
-        return usuarioService.obtenerTodos().stream()
-                .map(UsuarioResponse::desde)
-                .toList();
-    }
-
     @GetMapping("/{id}")
     public UsuarioResponse obtenerPorId(@PathVariable Long id) {
         return UsuarioResponse.desde(usuarioService.obtenerPorId(id));
+    }
+
+    /**
+     * Busqueda puntual por email exacto (para invitar a un colaborador conociendo su correo).
+     * A proposito no existe un GET que liste todos los usuarios: eso exponia el email de
+     * cualquiera a cualquier usuario autenticado.
+     */
+    @GetMapping("/buscar")
+    public UsuarioResponse buscarPorEmail(@RequestParam String email) {
+        return UsuarioResponse.desde(usuarioService.buscarPorEmail(email));
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +15,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,12 +25,15 @@ import org.springframework.security.access.AccessDeniedException;
 import music.license.dto.colaborador.ColaboradorBeatRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.AcuerdoCreditos;
+import music.license.model.AcuerdoCreditosEvento;
 import music.license.model.Beat;
 import music.license.model.ColaboradorBeat;
 import music.license.model.EstadoAcuerdo;
 import music.license.model.EstadoColaborador;
 import music.license.model.RolColaborador;
+import music.license.model.TipoEventoAcuerdo;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
 import music.license.repository.ColaboradorBeatRepository;
@@ -48,8 +54,14 @@ class ColaboradorBeatServiceTest {
     @Mock
     private AcuerdoCreditosRepository acuerdoCreditosRepository;
 
+    @Mock
+    private AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
+
     @InjectMocks
     private ColaboradorBeatService colaboradorBeatService;
+
+    @Captor
+    private ArgumentCaptor<AcuerdoCreditosEvento> eventoCaptor;
 
     private Beat beat;
     private Usuario productor;
@@ -92,6 +104,12 @@ class ColaboradorBeatServiceTest {
         assertThat(resultado.getBeat()).isEqualTo(beat);
         assertThat(resultado.getUsuario()).isEqualTo(invitado);
         assertThat(resultado.getEstado()).isEqualTo(EstadoColaborador.PENDIENTE);
+
+        verify(acuerdoCreditosEventoRepository).save(eventoCaptor.capture());
+        AcuerdoCreditosEvento evento = eventoCaptor.getValue();
+        assertThat(evento.getTipo()).isEqualTo(TipoEventoAcuerdo.PROPUESTA);
+        assertThat(evento.getUsuario()).isEqualTo(productor);
+        assertThat(evento.getBeat()).isEqualTo(beat);
     }
 
     @Test
@@ -217,6 +235,12 @@ class ColaboradorBeatServiceTest {
         assertThat(acuerdo.getEstado()).isEqualTo(EstadoAcuerdo.CERRADO);
         assertThat(acuerdo.getFechaCierre()).isNotNull();
         verify(acuerdoCreditosRepository).save(acuerdo);
+
+        verify(acuerdoCreditosEventoRepository, times(2)).save(eventoCaptor.capture());
+        List<TipoEventoAcuerdo> tipos = eventoCaptor.getAllValues().stream()
+                .map(AcuerdoCreditosEvento::getTipo)
+                .toList();
+        assertThat(tipos).containsExactly(TipoEventoAcuerdo.ACEPTACION, TipoEventoAcuerdo.CIERRE);
     }
 
     @Test
@@ -323,6 +347,7 @@ class ColaboradorBeatServiceTest {
         ColaboradorBeat colaboradorBeat = new ColaboradorBeat();
         colaboradorBeat.setId(5L);
         colaboradorBeat.setBeat(beat);
+        colaboradorBeat.setUsuario(invitado);
 
         AcuerdoCreditos acuerdo = new AcuerdoCreditos();
         acuerdo.setEstado(EstadoAcuerdo.CERRADO);
@@ -336,6 +361,12 @@ class ColaboradorBeatServiceTest {
         verify(colaboradorBeatRepository).deleteById(5L);
         assertThat(acuerdo.getEstado()).isEqualTo(EstadoAcuerdo.ABIERTO);
         verify(acuerdoCreditosRepository).save(acuerdo);
+
+        verify(acuerdoCreditosEventoRepository, times(2)).save(eventoCaptor.capture());
+        List<TipoEventoAcuerdo> tipos = eventoCaptor.getAllValues().stream()
+                .map(AcuerdoCreditosEvento::getTipo)
+                .toList();
+        assertThat(tipos).containsExactly(TipoEventoAcuerdo.ELIMINACION, TipoEventoAcuerdo.REAPERTURA);
     }
 
     @Test

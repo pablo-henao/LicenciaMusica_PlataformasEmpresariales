@@ -1,7 +1,5 @@
 package music.license.service;
 
-import java.util.List;
-
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Usuario;
 import music.license.repository.UsuarioRepository;
@@ -16,12 +14,18 @@ public class UsuarioService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public List<Usuario> obtenerTodos() {
-        return usuarioRepository.findAll();
-    }
-
     public Usuario obtenerPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+    }
+
+    /**
+     * Busqueda acotada por email exacto (para invitar a un colaborador por su correo),
+     * a proposito distinta de "listar todos los usuarios": no expone el directorio completo,
+     * solo confirma/devuelve la persona que ya se busca puntualmente.
+     */
+    public Usuario buscarPorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe un usuario con ese email"));
     }
 }

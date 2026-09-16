@@ -9,11 +9,14 @@ import org.springframework.stereotype.Service;
 import music.license.dto.colaborador.ColaboradorBeatRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.AcuerdoCreditos;
+import music.license.model.AcuerdoCreditosEvento;
 import music.license.model.Beat;
 import music.license.model.ColaboradorBeat;
 import music.license.model.EstadoAcuerdo;
 import music.license.model.EstadoColaborador;
+import music.license.model.TipoEventoAcuerdo;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
 import music.license.repository.ColaboradorBeatRepository;
@@ -27,17 +30,20 @@ public class ColaboradorBeatService {
     private final BeatRepository beatRepository;
     private final UsuarioRepository usuarioRepository;
     private final AcuerdoCreditosRepository acuerdoCreditosRepository;
+    private final AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
 
     public ColaboradorBeatService(
             ColaboradorBeatRepository colaboradorBeatRepository,
             BeatRepository beatRepository,
             UsuarioRepository usuarioRepository,
-            AcuerdoCreditosRepository acuerdoCreditosRepository) {
+            AcuerdoCreditosRepository acuerdoCreditosRepository,
+            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository) {
 
         this.colaboradorBeatRepository = colaboradorBeatRepository;
         this.beatRepository = beatRepository;
         this.usuarioRepository = usuarioRepository;
         this.acuerdoCreditosRepository = acuerdoCreditosRepository;
+        this.acuerdoCreditosEventoRepository = acuerdoCreditosEventoRepository;
     }
 
     public List<ColaboradorBeat> obtenerTodos() {
@@ -68,7 +74,12 @@ public class ColaboradorBeatService {
         colaboradorBeat.setEstado(EstadoColaborador.PENDIENTE);
 
         ColaboradorBeat guardado = colaboradorBeatRepository.save(colaboradorBeat);
-        reabrirAcuerdoYReiniciarAceptaciones(beat);
+
+        registrarEvento(beat, solicitante, TipoEventoAcuerdo.PROPUESTA,
+                "Propuso a " + usuario.getNombre() + " como " + request.getRol()
+                        + " con " + request.getPorcentajePropuesto() + "%");
+
+        reabrirAcuerdoYReiniciarAceptaciones(beat, solicitante);
 
         return guardado;
     }
@@ -87,7 +98,12 @@ public class ColaboradorBeatService {
         // beat y usuario no se reasignan via PUT
 
         ColaboradorBeat guardado = colaboradorBeatRepository.save(colaboradorBeat);
-        reabrirAcuerdoYReiniciarAceptaciones(colaboradorBeat.getBeat());
+
+        registrarEvento(colaboradorBeat.getBeat(), solicitante, TipoEventoAcuerdo.MODIFICACION,
+                "Modificó la propuesta de " + colaboradorBeat.getUsuario().getNombre()
+                        + " a " + datosActualizados.getRol() + " con " + datosActualizados.getPorcentajePropuesto() + "%");
+
+        reabrirAcuerdoYReiniciarAceptaciones(colaboradorBeat.getBeat(), solicitante);
 
         return guardado;
     }
@@ -102,7 +118,11 @@ public class ColaboradorBeatService {
         colaboradorBeat.setEstado(EstadoColaborador.ACEPTADO);
         ColaboradorBeat guardado = colaboradorBeatRepository.save(colaboradorBeat);
 
-        cerrarAcuerdoSiCorresponde(acuerdo);
+        registrarEvento(colaboradorBeat.getBeat(), solicitante, TipoEventoAcuerdo.ACEPTACION,
+                "Aceptó su propuesta como " + colaboradorBeat.getRol()
+                        + " con " + colaboradorBeat.getPorcentajePropuesto() + "%");
+
+        cerrarAcuerdoSiCorresponde(acuerdo, solicitante);
 
         return guardado;
     }
@@ -115,7 +135,13 @@ public class ColaboradorBeatService {
         acuerdoAbiertoDelBeat(colaboradorBeat.getBeat());
 
         colaboradorBeat.setEstado(EstadoColaborador.RECHAZADO);
-        return colaboradorBeatRepository.save(colaboradorBeat);
+        ColaboradorBeat guardado = colaboradorBeatRepository.save(colaboradorBeat);
+
+        registrarEvento(colaboradorBeat.getBeat(), solicitante, TipoEventoAcuerdo.RECHAZO,
+                "Rechazó su propuesta como " + colaboradorBeat.getRol()
+                        + " con " + colaboradorBeat.getPorcentajePropuesto() + "%");
+
+        return guardado;
     }
 
     public void eliminar(Long id, Usuario solicitante) {
@@ -126,8 +152,14 @@ public class ColaboradorBeatService {
                 "Solo el productor dueño del beat puede quitar colaboradores");
 
         Beat beat = colaboradorBeat.getBeat();
+        String nombreColaborador = colaboradorBeat.getUsuario().getNombre();
+
         colaboradorBeatRepository.deleteById(id);
-        reabrirAcuerdoYReiniciarAceptaciones(beat);
+
+        registrarEvento(beat, solicitante, TipoEventoAcuerdo.ELIMINACION,
+                "Quitó a " + nombreColaborador + " del acuerdo");
+
+        reabrirAcuerdoYReiniciarAceptaciones(beat, solicitante);
     }
 
     /**
@@ -150,7 +182,7 @@ public class ColaboradorBeatService {
      * Cierra el acuerdo solo si TODOS los colaboradores aceptaron y el split suma exactamente 100%.
      * Si alguien rechazo, o la suma no cuadra, el acuerdo se queda abierto aunque el resto haya aceptado.
      */
-    private void cerrarAcuerdoSiCorresponde(AcuerdoCreditos acuerdo) {
+    private void cerrarAcuerdoSiCorresponde(AcuerdoCreditos acuerdo, Usuario quienDisparoElCierre) {
         List<ColaboradorBeat> colaboradores = colaboradorBeatRepository.findByBeatId(acuerdo.getBeat().getId());
 
         boolean todosAceptaron = !colaboradores.isEmpty()
@@ -166,6 +198,9 @@ public class ColaboradorBeatService {
             acuerdo.setEstado(EstadoAcuerdo.CERRADO);
             acuerdo.setFechaCierre(LocalDateTime.now());
             acuerdoCreditosRepository.save(acuerdo);
+
+            registrarEvento(acuerdo.getBeat(), quienDisparoElCierre, TipoEventoAcuerdo.CIERRE,
+                    "El acuerdo se cerró: todos los colaboradores aceptaron y el split suma 100%");
         }
     }
 
@@ -174,11 +209,16 @@ public class ColaboradorBeatService {
      * un colaborador): si hay un acuerdo de creditos para el beat, vuelve a ABIERTO, y todos los
      * colaboradores que ya habian aceptado o rechazado quedan de nuevo en PENDIENTE.
      */
-    private void reabrirAcuerdoYReiniciarAceptaciones(Beat beat) {
+    private void reabrirAcuerdoYReiniciarAceptaciones(Beat beat, Usuario quienDisparoElCambio) {
         acuerdoCreditosRepository.findByBeatId(beat.getId()).ifPresent(acuerdo -> {
-            acuerdo.setEstado(EstadoAcuerdo.ABIERTO);
-            acuerdo.setFechaCierre(null);
-            acuerdoCreditosRepository.save(acuerdo);
+            if (acuerdo.getEstado() == EstadoAcuerdo.CERRADO) {
+                acuerdo.setEstado(EstadoAcuerdo.ABIERTO);
+                acuerdo.setFechaCierre(null);
+                acuerdoCreditosRepository.save(acuerdo);
+
+                registrarEvento(beat, quienDisparoElCambio, TipoEventoAcuerdo.REAPERTURA,
+                        "El acuerdo se reabrió por un cambio en los colaboradores; las aceptaciones se reiniciaron");
+            }
         });
 
         List<ColaboradorBeat> colaboradores = colaboradorBeatRepository.findByBeatId(beat.getId());
@@ -189,5 +229,16 @@ public class ColaboradorBeatService {
                 colaboradorBeatRepository.save(colaborador);
             }
         }
+    }
+
+    private void registrarEvento(Beat beat, Usuario usuario, TipoEventoAcuerdo tipo, String detalle) {
+        AcuerdoCreditosEvento evento = new AcuerdoCreditosEvento();
+        evento.setBeat(beat);
+        evento.setUsuario(usuario);
+        evento.setTipo(tipo);
+        evento.setDetalle(detalle);
+        evento.setFecha(LocalDateTime.now());
+
+        acuerdoCreditosEventoRepository.save(evento);
     }
 }

@@ -4,17 +4,20 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import music.license.dto.beat.BeatRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.AcuerdoCreditos;
+import music.license.model.AcuerdoCreditosEvento;
 import music.license.model.Beat;
 import music.license.model.ColaboradorBeat;
 import music.license.model.EstadoAcuerdo;
 import music.license.model.EstadoBeat;
 import music.license.model.Rol;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
 import music.license.repository.ColaboradorBeatRepository;
@@ -26,15 +29,18 @@ public class BeatService {
     private final BeatRepository beatRepository;
     private final ColaboradorBeatRepository colaboradorBeatRepository;
     private final AcuerdoCreditosRepository acuerdoCreditosRepository;
+    private final AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
 
     public BeatService(
             BeatRepository beatRepository,
             ColaboradorBeatRepository colaboradorBeatRepository,
-            AcuerdoCreditosRepository acuerdoCreditosRepository) {
+            AcuerdoCreditosRepository acuerdoCreditosRepository,
+            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository) {
 
         this.beatRepository = beatRepository;
         this.colaboradorBeatRepository = colaboradorBeatRepository;
         this.acuerdoCreditosRepository = acuerdoCreditosRepository;
+        this.acuerdoCreditosEventoRepository = acuerdoCreditosEventoRepository;
     }
 
     /**
@@ -128,5 +134,25 @@ public class BeatService {
                 beat.getProductor(), solicitante, "Solo el productor dueño del beat puede eliminarlo");
 
         beatRepository.deleteById(id);
+    }
+
+    /**
+     * Historial de eventos del acuerdo de creditos del beat (quien propuso, acepto,
+     * rechazo, modifico, etc). Visible para el productor dueño y para cualquiera de
+     * los colaboradores invitados a ese beat, nadie mas.
+     */
+    public List<AcuerdoCreditosEvento> obtenerHistorialCreditos(Long beatId, Usuario solicitante) {
+        Beat beat = obtenerPorId(beatId);
+
+        boolean esDuenio = beat.getProductor().getId().equals(solicitante.getId());
+        boolean esColaborador = colaboradorBeatRepository.findByBeatId(beatId).stream()
+                .anyMatch(c -> c.getUsuario().getId().equals(solicitante.getId()));
+
+        if (!esDuenio && !esColaborador) {
+            throw new AccessDeniedException(
+                    "Solo el productor o los colaboradores del beat pueden ver este historial");
+        }
+
+        return acuerdoCreditosEventoRepository.findByBeatIdOrderByFechaAsc(beatId);
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.security.access.AccessDeniedException;
 import music.license.dto.beat.BeatRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.AcuerdoCreditos;
+import music.license.model.AcuerdoCreditosEvento;
 import music.license.model.Beat;
 import music.license.model.ColaboradorBeat;
 import music.license.model.EstadoAcuerdo;
@@ -31,7 +32,9 @@ import music.license.model.EstadoBeat;
 import music.license.model.EstadoColaborador;
 import music.license.model.Rol;
 import music.license.model.RolColaborador;
+import music.license.model.TipoEventoAcuerdo;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
 import music.license.repository.ColaboradorBeatRepository;
@@ -47,6 +50,9 @@ class BeatServiceTest {
 
     @Mock
     private AcuerdoCreditosRepository acuerdoCreditosRepository;
+
+    @Mock
+    private AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
 
     @InjectMocks
     private BeatService beatService;
@@ -301,5 +307,44 @@ class BeatServiceTest {
         Beat resultado = beatService.publicar(1L, productor);
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoBeat.PUBLICADO);
+    }
+
+    @Test
+    void obtenerHistorialCreditos_conDuenio_devuelveLosEventos() {
+        AcuerdoCreditosEvento evento = new AcuerdoCreditosEvento();
+        evento.setTipo(TipoEventoAcuerdo.ABIERTO);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(acuerdoCreditosEventoRepository.findByBeatIdOrderByFechaAsc(1L)).thenReturn(List.of(evento));
+
+        List<AcuerdoCreditosEvento> resultado = beatService.obtenerHistorialCreditos(1L, productor);
+
+        assertThat(resultado).containsExactly(evento);
+    }
+
+    @Test
+    void obtenerHistorialCreditos_conColaboradorInvitado_devuelveLosEventos() {
+        Usuario colaborador = new Usuario();
+        colaborador.setId(40L);
+
+        ColaboradorBeat colaboradorBeat = new ColaboradorBeat();
+        colaboradorBeat.setUsuario(colaborador);
+
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(colaboradorBeat));
+        when(acuerdoCreditosEventoRepository.findByBeatIdOrderByFechaAsc(1L)).thenReturn(List.of());
+
+        List<AcuerdoCreditosEvento> resultado = beatService.obtenerHistorialCreditos(1L, colaborador);
+
+        assertThat(resultado).isEmpty();
+    }
+
+    @Test
+    void obtenerHistorialCreditos_conUsuarioAjeno_lanzaAccessDeniedException() {
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of());
+
+        assertThatThrownBy(() -> beatService.obtenerHistorialCreditos(1L, otroUsuario))
+                .isInstanceOf(AccessDeniedException.class);
     }
 }

@@ -1,5 +1,6 @@
 package music.license.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -7,9 +8,12 @@ import org.springframework.stereotype.Service;
 import music.license.dto.acuerdo.AcuerdoCreditosRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.AcuerdoCreditos;
+import music.license.model.AcuerdoCreditosEvento;
 import music.license.model.Beat;
 import music.license.model.EstadoAcuerdo;
+import music.license.model.TipoEventoAcuerdo;
 import music.license.model.Usuario;
+import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
 import music.license.security.AutorizacionUtil;
@@ -19,10 +23,16 @@ public class AcuerdoCreditosService {
 
     private final AcuerdoCreditosRepository acuerdoCreditosRepository;
     private final BeatRepository beatRepository;
+    private final AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
 
-    public AcuerdoCreditosService(AcuerdoCreditosRepository acuerdoCreditosRepository, BeatRepository beatRepository) {
+    public AcuerdoCreditosService(
+            AcuerdoCreditosRepository acuerdoCreditosRepository,
+            BeatRepository beatRepository,
+            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository) {
+
         this.acuerdoCreditosRepository = acuerdoCreditosRepository;
         this.beatRepository = beatRepository;
+        this.acuerdoCreditosEventoRepository = acuerdoCreditosEventoRepository;
     }
 
     public List<AcuerdoCreditos> obtenerTodos() {
@@ -47,7 +57,17 @@ public class AcuerdoCreditosService {
         acuerdoCreditos.setEstado(EstadoAcuerdo.ABIERTO);
         acuerdoCreditos.setFechaCierre(null);
 
-        return acuerdoCreditosRepository.save(acuerdoCreditos);
+        AcuerdoCreditos guardado = acuerdoCreditosRepository.save(acuerdoCreditos);
+
+        AcuerdoCreditosEvento evento = new AcuerdoCreditosEvento();
+        evento.setBeat(beat);
+        evento.setUsuario(solicitante);
+        evento.setTipo(TipoEventoAcuerdo.ABIERTO);
+        evento.setDetalle("Abrió el acuerdo de créditos del beat");
+        evento.setFecha(LocalDateTime.now());
+        acuerdoCreditosEventoRepository.save(evento);
+
+        return guardado;
     }
 
     public void eliminar(Long id, Usuario solicitante) {
