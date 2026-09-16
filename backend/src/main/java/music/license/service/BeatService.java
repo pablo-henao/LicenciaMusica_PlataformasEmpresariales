@@ -2,6 +2,8 @@ package music.license.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import music.license.dto.beat.BeatRequest;
@@ -35,13 +37,41 @@ public class BeatService {
         this.acuerdoCreditosRepository = acuerdoCreditosRepository;
     }
 
-    public List<Beat> obtenerTodos() {
-        return beatRepository.findAll();
+    /**
+     * El catalogo publico: solo beats PUBLICADO, con filtro opcional de genero/bpm y paginado.
+     */
+    public Page<Beat> buscarCatalogo(String genero, Integer bpmMin, Integer bpmMax, Pageable pageable) {
+        return beatRepository.buscarCatalogo(EstadoBeat.PUBLICADO, genero, bpmMin, bpmMax, pageable);
+    }
+
+    /**
+     * Los beats del propio productor, incluidos los que aun estan en BORRADOR.
+     */
+    public Page<Beat> obtenerMios(Usuario solicitante, Pageable pageable) {
+        return beatRepository.findByProductorId(solicitante.getId(), pageable);
     }
 
     public Beat obtenerPorId(Long id) {
         return beatRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Beat no encontrado"));
+    }
+
+    /**
+     * Vista de detalle "publica": un beat en BORRADOR no existe para nadie que no sea su dueño
+     * (se trata igual que un 404, para no confirmar ni exponer datos de un beat no publicado).
+     */
+    public Beat obtenerPorIdPublico(Long id, Usuario solicitante) {
+        Beat beat = obtenerPorId(id);
+
+        boolean esDuenio = solicitante != null
+                && beat.getProductor() != null
+                && beat.getProductor().getId().equals(solicitante.getId());
+
+        if (beat.getEstado() != EstadoBeat.PUBLICADO && !esDuenio) {
+            throw new ResourceNotFoundException("Beat no encontrado");
+        }
+
+        return beat;
     }
 
     public Beat guardar(Beat beat, Usuario solicitante) {

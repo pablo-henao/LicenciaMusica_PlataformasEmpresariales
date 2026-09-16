@@ -15,6 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
 import music.license.dto.beat.BeatRequest;
@@ -71,13 +75,54 @@ class BeatServiceTest {
     }
 
     @Test
-    void obtenerTodos_devuelveListaDeBeats() {
-        when(beatRepository.findAll()).thenReturn(List.of(beat));
+    void buscarCatalogo_delegaEnElRepositorioConEstadoPublicado() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Beat> pagina = new PageImpl<>(List.of(beat));
 
-        List<Beat> resultado = beatService.obtenerTodos();
+        when(beatRepository.buscarCatalogo(EstadoBeat.PUBLICADO, "Trap", 90, 100, pageable)).thenReturn(pagina);
 
-        assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getTitulo()).isEqualTo("Sueños de Medallo");
+        Page<Beat> resultado = beatService.buscarCatalogo("Trap", 90, 100, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(beat);
+    }
+
+    @Test
+    void obtenerMios_delegaEnElRepositorioPorProductor() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Beat> pagina = new PageImpl<>(List.of(beat));
+
+        when(beatRepository.findByProductorId(10L, pageable)).thenReturn(pagina);
+
+        Page<Beat> resultado = beatService.obtenerMios(productor, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(beat);
+    }
+
+    @Test
+    void obtenerPorIdPublico_beatPublicado_visibleParaCualquiera() {
+        beat.setEstado(EstadoBeat.PUBLICADO);
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+
+        Beat resultado = beatService.obtenerPorIdPublico(1L, otroUsuario);
+
+        assertThat(resultado).isEqualTo(beat);
+    }
+
+    @Test
+    void obtenerPorIdPublico_beatBorradorPropio_visibleParaElDuenio() {
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+
+        Beat resultado = beatService.obtenerPorIdPublico(1L, productor);
+
+        assertThat(resultado).isEqualTo(beat);
+    }
+
+    @Test
+    void obtenerPorIdPublico_beatBorradorAjeno_lanzaResourceNotFoundException() {
+        when(beatRepository.findById(1L)).thenReturn(Optional.of(beat));
+
+        assertThatThrownBy(() -> beatService.obtenerPorIdPublico(1L, otroUsuario))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

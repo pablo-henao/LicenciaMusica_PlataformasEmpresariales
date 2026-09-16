@@ -1,8 +1,9 @@
 package music.license.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import music.license.dto.compra.CompraRequest;
@@ -35,12 +36,11 @@ public class CompraService {
     }
 
     /**
-     * De momento equivale a "mis compras": no existe un rol admin que justifique
-     * ver las compras de todos los usuarios. El bloque de catalogo/historial
-     * puede ampliar esto con paginacion y una vista para el productor vendedor.
+     * Historial de compras del propio usuario, paginado. No existe un rol admin
+     * que justifique ver las compras de todos los usuarios.
      */
-    public List<Compra> obtenerTodas(Usuario solicitante) {
-        return compraRepository.findByCompradorId(solicitante.getId());
+    public Page<Compra> obtenerTodas(Usuario solicitante, Pageable pageable) {
+        return compraRepository.findByCompradorId(solicitante.getId(), pageable);
     }
 
     public Compra obtenerPorId(Long id, Usuario solicitante) {

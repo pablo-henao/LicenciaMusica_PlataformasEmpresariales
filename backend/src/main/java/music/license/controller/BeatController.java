@@ -1,7 +1,8 @@
 package music.license.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +21,7 @@ import jakarta.validation.Valid;
 
 import music.license.dto.beat.BeatRequest;
 import music.license.dto.beat.BeatResponse;
+import music.license.dto.common.PaginaResponse;
 import music.license.model.Beat;
 import music.license.model.EstadoBeat;
 import music.license.model.Usuario;
@@ -34,16 +37,35 @@ public class BeatController {
         this.beatService = beatService;
     }
 
+    /**
+     * Catalogo publico: solo beats publicados, filtrable por genero/bpm y paginado.
+     */
     @GetMapping
-    public List<BeatResponse> obtenerTodos() {
-        return beatService.obtenerTodos().stream()
-                .map(BeatResponse::desde)
-                .toList();
+    public PaginaResponse<BeatResponse> obtenerCatalogo(
+            @RequestParam(required = false) String genero,
+            @RequestParam(required = false) Integer bpmMin,
+            @RequestParam(required = false) Integer bpmMax,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        Page<Beat> pagina = beatService.buscarCatalogo(genero, bpmMin, bpmMax, pageable);
+        return PaginaResponse.desde(pagina, BeatResponse::desde);
+    }
+
+    /**
+     * Los beats del productor autenticado, incluidos los que siguen en borrador.
+     */
+    @GetMapping("/mios")
+    public PaginaResponse<BeatResponse> obtenerMios(
+            @AuthenticationPrincipal Usuario usuario,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        Page<Beat> pagina = beatService.obtenerMios(usuario, pageable);
+        return PaginaResponse.desde(pagina, BeatResponse::desde);
     }
 
     @GetMapping("/{id}")
-    public BeatResponse obtenerPorId(@PathVariable Long id) {
-        return BeatResponse.desde(beatService.obtenerPorId(id));
+    public BeatResponse obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        return BeatResponse.desde(beatService.obtenerPorIdPublico(id, usuario));
     }
 
     @PostMapping

@@ -1,7 +1,9 @@
 package music.license.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,8 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 
+import music.license.dto.common.PaginaResponse;
 import music.license.dto.compra.CompraRequest;
 import music.license.dto.compra.CompraResponse;
+import music.license.model.Compra;
 import music.license.model.Usuario;
 import music.license.service.CompraService;
 
@@ -34,11 +38,16 @@ public class CompraController {
         this.compraService = compraService;
     }
 
+    /**
+     * Historial de compras del comprador autenticado, mas recientes primero.
+     */
     @GetMapping
-    public List<CompraResponse> obtenerTodas(@AuthenticationPrincipal Usuario usuario) {
-        return compraService.obtenerTodas(usuario).stream()
-                .map(CompraResponse::desde)
-                .toList();
+    public PaginaResponse<CompraResponse> obtenerTodas(
+            @AuthenticationPrincipal Usuario usuario,
+            @PageableDefault(size = 20, sort = "fecha", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<Compra> pagina = compraService.obtenerTodas(usuario, pageable);
+        return PaginaResponse.desde(pagina, CompraResponse::desde);
     }
 
     @GetMapping("/{id}")
