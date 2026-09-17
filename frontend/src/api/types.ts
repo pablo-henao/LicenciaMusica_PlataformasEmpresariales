@@ -22,3 +22,27 @@ export interface PaginaResponse<T> {
   totalElementos: number;
   totalPaginas: number;
 }
+
+export type EstadoBeat = "BORRADOR" | "PUBLICADO";
+
+export interface BeatResponse {
+  id: number;
+  titulo: string;
+  genero: string;
+  bpm: number;
+  urlPreview: string | null;
+  estado: EstadoBeat;
+  productorId: number;
+  productorNombre: string;
+}
+
+export type TipoLicenciaEnum = "EXCLUSIVA" | "NO_EXCLUSIVA" | "COMERCIAL_LIMITADA";
+
+export interface TipoLicenciaResponse {
+  id: number;
+  beatId: number;
+  beatTitulo: string;
+  tipo: TipoLicenciaEnum;
+  precio: number;
+  condiciones: string | null;
+}

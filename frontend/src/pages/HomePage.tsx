@@ -37,9 +37,12 @@ export function HomePage() {
       )}
 
       {usuario && (
-        <p className="text-sm text-neutral-500">
-          El catálogo de beats está en camino — vuelve pronto para explorar y comprar licencias.
-        </p>
+        <Link
+          to="/catalogo"
+          className="rounded-md bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
+        >
+          Explorar catálogo →
+        </Link>
       )}
     </div>
   );

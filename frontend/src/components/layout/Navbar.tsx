@@ -19,9 +19,19 @@ export function Navbar() {
   return (
     <header className="border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link to="/" className="text-xl font-semibold text-brand-700">
-          Licencia<span className="text-brand-500">+</span>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="text-xl font-semibold text-brand-700">
+            Licencia<span className="text-brand-500">+</span>
+          </Link>
+
+          {usuario && (
+            <nav className="hidden items-center gap-4 text-sm font-medium text-neutral-600 sm:flex">
+              <Link to="/catalogo" className="transition hover:text-brand-700">
+                Catálogo
+              </Link>
+            </nav>
+          )}
+        </div>
 
         <nav className="flex items-center gap-3">
           {usuario ? (
