@@ -47,6 +47,14 @@ public class CompraService {
         return compraRepository.findByCompradorId(solicitante.getId(), pageable);
     }
 
+    /**
+     * Las compras de licencias de los beats del propio productor (el lado "venta"
+     * de la transaccion, en vez del lado "compra" que ya cubre obtenerTodas).
+     */
+    public Page<Compra> obtenerMisVentas(Usuario solicitante, Pageable pageable) {
+        return compraRepository.findByProductorId(solicitante.getId(), pageable);
+    }
+
     public Compra obtenerPorId(Long id, Usuario solicitante) {
         Compra compra = compraRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada"));

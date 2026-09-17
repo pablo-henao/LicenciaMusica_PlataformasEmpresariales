@@ -50,6 +50,18 @@ public class CompraController {
         return PaginaResponse.desde(pagina, CompraResponse::desde);
     }
 
+    /**
+     * El lado "venta": compras de licencias de los beats del propio productor.
+     */
+    @GetMapping("/mis-ventas")
+    public PaginaResponse<CompraResponse> obtenerMisVentas(
+            @AuthenticationPrincipal Usuario usuario,
+            @PageableDefault(size = 20, sort = "fecha", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<Compra> pagina = compraService.obtenerMisVentas(usuario, pageable);
+        return PaginaResponse.desde(pagina, CompraResponse::desde);
+    }
+
     @GetMapping("/{id}")
     public CompraResponse obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
         return CompraResponse.desde(compraService.obtenerPorId(id, usuario));

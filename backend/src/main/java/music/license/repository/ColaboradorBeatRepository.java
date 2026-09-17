@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ColaboradorBeatRepository extends JpaRepository<ColaboradorBeat, Long> {
 
     List<ColaboradorBeat> findByBeatId(Long beatId);
+
+    List<ColaboradorBeat> findByUsuarioId(Long usuarioId);
 }

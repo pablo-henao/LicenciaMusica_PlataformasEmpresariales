@@ -16,6 +16,7 @@ import music.license.model.Usuario;
 import music.license.repository.AcuerdoCreditosEventoRepository;
 import music.license.repository.AcuerdoCreditosRepository;
 import music.license.repository.BeatRepository;
+import music.license.repository.ColaboradorBeatRepository;
 import music.license.security.AutorizacionUtil;
 
 @Service
@@ -24,19 +25,42 @@ public class AcuerdoCreditosService {
     private final AcuerdoCreditosRepository acuerdoCreditosRepository;
     private final BeatRepository beatRepository;
     private final AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository;
+    private final ColaboradorBeatRepository colaboradorBeatRepository;
 
     public AcuerdoCreditosService(
             AcuerdoCreditosRepository acuerdoCreditosRepository,
             BeatRepository beatRepository,
-            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository) {
+            AcuerdoCreditosEventoRepository acuerdoCreditosEventoRepository,
+            ColaboradorBeatRepository colaboradorBeatRepository) {
 
         this.acuerdoCreditosRepository = acuerdoCreditosRepository;
         this.beatRepository = beatRepository;
         this.acuerdoCreditosEventoRepository = acuerdoCreditosEventoRepository;
+        this.colaboradorBeatRepository = colaboradorBeatRepository;
     }
 
-    public List<AcuerdoCreditos> obtenerTodos() {
-        return acuerdoCreditosRepository.findAll();
+    /**
+     * Solo lo ve el productor dueño del beat o alguno de sus colaboradores.
+     */
+    public List<AcuerdoCreditos> obtenerTodosVisibles(Usuario solicitante) {
+        return acuerdoCreditosRepository.findAll().stream()
+                .filter(a -> esVisible(a.getBeat(), solicitante))
+                .toList();
+    }
+
+    public AcuerdoCreditos obtenerPorIdVisible(Long id, Usuario solicitante) {
+        AcuerdoCreditos acuerdoCreditos = obtenerPorId(id);
+
+        if (!esVisible(acuerdoCreditos.getBeat(), solicitante)) {
+            throw new ResourceNotFoundException("Acuerdo de créditos no encontrado");
+        }
+
+        return acuerdoCreditos;
+    }
+
+    private boolean esVisible(Beat beat, Usuario solicitante) {
+        return AutorizacionUtil.esDuenioOColaborador(
+                beat.getProductor(), solicitante, colaboradorBeatRepository.findByBeatId(beat.getId()));
     }
 
     public AcuerdoCreditos obtenerPorId(Long id) {

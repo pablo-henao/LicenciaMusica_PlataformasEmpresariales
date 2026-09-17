@@ -391,4 +391,92 @@ class ColaboradorBeatServiceTest {
 
         verify(colaboradorBeatRepository, never()).deleteById(5L);
     }
+
+    @Test
+    void obtenerTodosVisibles_conDuenioODuenioOColaborador_incluyeLaFila() {
+        ColaboradorBeat fila = new ColaboradorBeat();
+        fila.setBeat(beat);
+        fila.setUsuario(invitado);
+
+        when(colaboradorBeatRepository.findAll()).thenReturn(List.of(fila));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(fila));
+
+        List<ColaboradorBeat> resultado = colaboradorBeatService.obtenerTodosVisibles(productor);
+
+        assertThat(resultado).containsExactly(fila);
+    }
+
+    @Test
+    void obtenerTodosVisibles_conUsuarioAjeno_laExcluye() {
+        ColaboradorBeat fila = new ColaboradorBeat();
+        fila.setBeat(beat);
+        fila.setUsuario(invitado);
+
+        when(colaboradorBeatRepository.findAll()).thenReturn(List.of(fila));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(fila));
+
+        List<ColaboradorBeat> resultado = colaboradorBeatService.obtenerTodosVisibles(otroUsuario);
+
+        assertThat(resultado).isEmpty();
+    }
+
+    @Test
+    void obtenerPorIdVisible_conColaboradorInvitado_laDevuelve() {
+        ColaboradorBeat fila = new ColaboradorBeat();
+        fila.setId(5L);
+        fila.setBeat(beat);
+        fila.setUsuario(invitado);
+
+        when(colaboradorBeatRepository.findById(5L)).thenReturn(Optional.of(fila));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(fila));
+
+        ColaboradorBeat resultado = colaboradorBeatService.obtenerPorIdVisible(5L, invitado);
+
+        assertThat(resultado).isEqualTo(fila);
+    }
+
+    @Test
+    void obtenerPorIdVisible_conUsuarioAjeno_lanzaResourceNotFoundException() {
+        ColaboradorBeat fila = new ColaboradorBeat();
+        fila.setId(5L);
+        fila.setBeat(beat);
+        fila.setUsuario(invitado);
+
+        when(colaboradorBeatRepository.findById(5L)).thenReturn(Optional.of(fila));
+        when(colaboradorBeatRepository.findByBeatId(1L)).thenReturn(List.of(fila));
+
+        assertThatThrownBy(() -> colaboradorBeatService.obtenerPorIdVisible(5L, otroUsuario))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void obtenerMisInvitaciones_sinFiltroDeEstado_devuelveTodasLasPropias() {
+        ColaboradorBeat fila = new ColaboradorBeat();
+        fila.setUsuario(invitado);
+        fila.setEstado(EstadoColaborador.ACEPTADO);
+
+        when(colaboradorBeatRepository.findByUsuarioId(2L)).thenReturn(List.of(fila));
+
+        List<ColaboradorBeat> resultado = colaboradorBeatService.obtenerMisInvitaciones(invitado, null);
+
+        assertThat(resultado).containsExactly(fila);
+    }
+
+    @Test
+    void obtenerMisInvitaciones_conFiltroDeEstado_soloDevuelveEseEstado() {
+        ColaboradorBeat pendiente = new ColaboradorBeat();
+        pendiente.setUsuario(invitado);
+        pendiente.setEstado(EstadoColaborador.PENDIENTE);
+
+        ColaboradorBeat aceptada = new ColaboradorBeat();
+        aceptada.setUsuario(invitado);
+        aceptada.setEstado(EstadoColaborador.ACEPTADO);
+
+        when(colaboradorBeatRepository.findByUsuarioId(2L)).thenReturn(List.of(pendiente, aceptada));
+
+        List<ColaboradorBeat> resultado =
+                colaboradorBeatService.obtenerMisInvitaciones(invitado, EstadoColaborador.PENDIENTE);
+
+        assertThat(resultado).containsExactly(pendiente);
+    }
 }

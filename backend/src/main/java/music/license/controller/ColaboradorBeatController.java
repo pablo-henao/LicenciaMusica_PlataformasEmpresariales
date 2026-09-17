@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 
 import music.license.dto.colaborador.ColaboradorBeatRequest;
 import music.license.dto.colaborador.ColaboradorBeatResponse;
+import music.license.model.EstadoColaborador;
 import music.license.model.Usuario;
 import music.license.service.ColaboradorBeatService;
 
@@ -33,15 +35,29 @@ public class ColaboradorBeatController {
     }
 
     @GetMapping
-    public List<ColaboradorBeatResponse> obtenerTodos() {
-        return colaboradorBeatService.obtenerTodos().stream()
+    public List<ColaboradorBeatResponse> obtenerTodos(@AuthenticationPrincipal Usuario usuario) {
+        return colaboradorBeatService.obtenerTodosVisibles(usuario).stream()
+                .map(ColaboradorBeatResponse::desde)
+                .toList();
+    }
+
+    /**
+     * Las invitaciones a colaborar dirigidas al propio usuario autenticado.
+     * Filtro opcional por estado, ej. ?estado=PENDIENTE para ver solo lo que falta responder.
+     */
+    @GetMapping("/mias")
+    public List<ColaboradorBeatResponse> obtenerMisInvitaciones(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(required = false) EstadoColaborador estado) {
+
+        return colaboradorBeatService.obtenerMisInvitaciones(usuario, estado).stream()
                 .map(ColaboradorBeatResponse::desde)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public ColaboradorBeatResponse obtenerPorId(@PathVariable Long id) {
-        return ColaboradorBeatResponse.desde(colaboradorBeatService.obtenerPorId(id));
+    public ColaboradorBeatResponse obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        return ColaboradorBeatResponse.desde(colaboradorBeatService.obtenerPorIdVisible(id, usuario));
     }
 
     @PostMapping

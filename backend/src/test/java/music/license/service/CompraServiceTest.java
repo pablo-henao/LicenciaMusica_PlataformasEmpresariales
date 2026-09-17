@@ -143,6 +143,23 @@ class CompraServiceTest {
     }
 
     @Test
+    void obtenerMisVentas_delegaEnElRepositorioPorProductor() {
+        Compra compra = new Compra();
+        compra.setId(1L);
+        compra.setComprador(comprador);
+        compra.setTipoLicencia(tipoLicencia);
+
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Compra> pagina = new PageImpl<>(List.of(compra));
+
+        when(compraRepository.findByProductorId(5L, pageable)).thenReturn(pagina);
+
+        Page<Compra> resultado = compraService.obtenerMisVentas(productor, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(compra);
+    }
+
+    @Test
     void obtenerPorId_conDuenio_devuelveLaCompra() {
         Compra compra = new Compra();
         compra.setId(1L);

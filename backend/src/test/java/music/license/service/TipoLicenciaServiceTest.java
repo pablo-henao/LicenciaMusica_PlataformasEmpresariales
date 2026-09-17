@@ -22,6 +22,7 @@ import org.springframework.security.access.AccessDeniedException;
 import music.license.dto.licencia.TipoLicenciaRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Beat;
+import music.license.model.EstadoBeat;
 import music.license.model.TipoLicencia;
 import music.license.model.TipoLicenciaEnum;
 import music.license.model.Usuario;
@@ -67,12 +68,42 @@ class TipoLicenciaServiceTest {
     }
 
     @Test
-    void obtenerTodos_devuelveTodasLasLicencias() {
+    void obtenerTodosVisibles_conBeatPublicado_incluyeLaLicenciaParaCualquiera() {
+        beat.setEstado(EstadoBeat.PUBLICADO);
         when(tipoLicenciaRepository.findAll()).thenReturn(List.of(licencia));
 
-        List<TipoLicencia> resultado = tipoLicenciaService.obtenerTodos();
+        List<TipoLicencia> resultado = tipoLicenciaService.obtenerTodosVisibles(otroUsuario);
 
         assertThat(resultado).containsExactly(licencia);
+    }
+
+    @Test
+    void obtenerTodosVisibles_conBeatBorradorYSolicitanteAjeno_laExcluye() {
+        beat.setEstado(EstadoBeat.BORRADOR);
+        when(tipoLicenciaRepository.findAll()).thenReturn(List.of(licencia));
+
+        List<TipoLicencia> resultado = tipoLicenciaService.obtenerTodosVisibles(otroUsuario);
+
+        assertThat(resultado).isEmpty();
+    }
+
+    @Test
+    void obtenerTodosVisibles_conBeatBorradorYSolicitanteDuenio_laIncluye() {
+        beat.setEstado(EstadoBeat.BORRADOR);
+        when(tipoLicenciaRepository.findAll()).thenReturn(List.of(licencia));
+
+        List<TipoLicencia> resultado = tipoLicenciaService.obtenerTodosVisibles(productor);
+
+        assertThat(resultado).containsExactly(licencia);
+    }
+
+    @Test
+    void obtenerPorIdVisible_conBeatBorradorYSolicitanteAjeno_lanzaResourceNotFoundException() {
+        beat.setEstado(EstadoBeat.BORRADOR);
+        when(tipoLicenciaRepository.findById(1L)).thenReturn(Optional.of(licencia));
+
+        assertThatThrownBy(() -> tipoLicenciaService.obtenerPorIdVisible(1L, otroUsuario))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

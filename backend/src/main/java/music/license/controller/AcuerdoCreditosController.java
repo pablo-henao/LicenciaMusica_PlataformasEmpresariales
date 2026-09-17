@@ -31,15 +31,15 @@ public class AcuerdoCreditosController {
     }
 
     @GetMapping
-    public List<AcuerdoCreditosResponse> obtenerTodos() {
-        return acuerdoCreditosService.obtenerTodos().stream()
+    public List<AcuerdoCreditosResponse> obtenerTodos(@AuthenticationPrincipal Usuario usuario) {
+        return acuerdoCreditosService.obtenerTodosVisibles(usuario).stream()
                 .map(AcuerdoCreditosResponse::desde)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public AcuerdoCreditosResponse obtenerPorId(@PathVariable Long id) {
-        return AcuerdoCreditosResponse.desde(acuerdoCreditosService.obtenerPorId(id));
+    public AcuerdoCreditosResponse obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        return AcuerdoCreditosResponse.desde(acuerdoCreditosService.obtenerPorIdVisible(id, usuario));
     }
 
     @PostMapping

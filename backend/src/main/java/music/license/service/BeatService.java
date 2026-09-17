@@ -146,11 +146,9 @@ public class BeatService {
     public List<AcuerdoCreditosEvento> obtenerHistorialCreditos(Long beatId, Usuario solicitante) {
         Beat beat = obtenerPorId(beatId);
 
-        boolean esDuenio = beat.getProductor().getId().equals(solicitante.getId());
-        boolean esColaborador = colaboradorBeatRepository.findByBeatId(beatId).stream()
-                .anyMatch(c -> c.getUsuario().getId().equals(solicitante.getId()));
+        List<ColaboradorBeat> colaboradores = colaboradorBeatRepository.findByBeatId(beatId);
 
-        if (!esDuenio && !esColaborador) {
+        if (!AutorizacionUtil.esDuenioOColaborador(beat.getProductor(), solicitante, colaboradores)) {
             throw new AccessDeniedException(
                     "Solo el productor o los colaboradores del beat pueden ver este historial");
         }

@@ -50,8 +50,42 @@ public class ColaboradorBeatService {
         this.notificacionService = notificacionService;
     }
 
-    public List<ColaboradorBeat> obtenerTodos() {
-        return colaboradorBeatRepository.findAll();
+    /**
+     * Solo ve una fila quien es el productor dueño del beat, o alguno de sus colaboradores
+     * (declarados en el mismo beat) - el split de creditos no es informacion publica.
+     */
+    public List<ColaboradorBeat> obtenerTodosVisibles(Usuario solicitante) {
+        return colaboradorBeatRepository.findAll().stream()
+                .filter(c -> esVisible(c.getBeat(), solicitante))
+                .toList();
+    }
+
+    public ColaboradorBeat obtenerPorIdVisible(Long id, Usuario solicitante) {
+        ColaboradorBeat colaboradorBeat = obtenerPorId(id);
+
+        if (!esVisible(colaboradorBeat.getBeat(), solicitante)) {
+            throw new ResourceNotFoundException("Colaborador no encontrado");
+        }
+
+        return colaboradorBeat;
+    }
+
+    private boolean esVisible(Beat beat, Usuario solicitante) {
+        return AutorizacionUtil.esDuenioOColaborador(
+                beat.getProductor(), solicitante, colaboradorBeatRepository.findByBeatId(beat.getId()));
+    }
+
+    /**
+     * Las invitaciones (en cualquier estado) dirigidas al propio usuario autenticado.
+     */
+    public List<ColaboradorBeat> obtenerMisInvitaciones(Usuario solicitante, EstadoColaborador estado) {
+        List<ColaboradorBeat> todas = colaboradorBeatRepository.findByUsuarioId(solicitante.getId());
+
+        if (estado == null) {
+            return todas;
+        }
+
+        return todas.stream().filter(c -> c.getEstado() == estado).toList();
     }
 
     public ColaboradorBeat obtenerPorId(Long id) {

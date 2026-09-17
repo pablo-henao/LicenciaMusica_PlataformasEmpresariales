@@ -32,15 +32,15 @@ public class TipoLicenciaController {
     }
 
     @GetMapping
-    public List<TipoLicenciaResponse> obtenerTodos() {
-        return tipoLicenciaService.obtenerTodos().stream()
+    public List<TipoLicenciaResponse> obtenerTodos(@AuthenticationPrincipal Usuario usuario) {
+        return tipoLicenciaService.obtenerTodosVisibles(usuario).stream()
                 .map(TipoLicenciaResponse::desde)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public TipoLicenciaResponse obtenerPorId(@PathVariable Long id) {
-        return TipoLicenciaResponse.desde(tipoLicenciaService.obtenerPorId(id));
+    public TipoLicenciaResponse obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        return TipoLicenciaResponse.desde(tipoLicenciaService.obtenerPorIdVisible(id, usuario));
     }
 
     @PostMapping

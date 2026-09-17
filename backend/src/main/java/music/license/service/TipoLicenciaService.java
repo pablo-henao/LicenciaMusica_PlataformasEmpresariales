@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import music.license.dto.licencia.TipoLicenciaRequest;
 import music.license.exception.ResourceNotFoundException;
 import music.license.model.Beat;
+import music.license.model.EstadoBeat;
 import music.license.model.TipoLicencia;
 import music.license.model.Usuario;
 import music.license.repository.BeatRepository;
@@ -24,8 +25,29 @@ public class TipoLicenciaService {
         this.beatRepository = beatRepository;
     }
 
-    public List<TipoLicencia> obtenerTodos() {
-        return tipoLicenciaRepository.findAll();
+    /**
+     * Las licencias de un beat publicado son publicas (es el catalogo de venta);
+     * las de un beat en borrador solo las ve su propio productor.
+     */
+    public List<TipoLicencia> obtenerTodosVisibles(Usuario solicitante) {
+        return tipoLicenciaRepository.findAll().stream()
+                .filter(t -> esVisible(t.getBeat(), solicitante))
+                .toList();
+    }
+
+    public TipoLicencia obtenerPorIdVisible(Long id, Usuario solicitante) {
+        TipoLicencia tipoLicencia = obtenerPorId(id);
+
+        if (!esVisible(tipoLicencia.getBeat(), solicitante)) {
+            throw new ResourceNotFoundException("Tipo de licencia no encontrado");
+        }
+
+        return tipoLicencia;
+    }
+
+    private boolean esVisible(Beat beat, Usuario solicitante) {
+        return beat.getEstado() == EstadoBeat.PUBLICADO
+                || beat.getProductor().getId().equals(solicitante.getId());
     }
 
     public TipoLicencia obtenerPorId(Long id) {
