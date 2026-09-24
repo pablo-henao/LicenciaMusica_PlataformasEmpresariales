@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { obtenerCatalogo, type FiltrosCatalogo } from "../../api/beats";
 import type { BeatResponse, PaginaResponse } from "../../api/types";
 import { BeatCard } from "../../components/beats/BeatCard";
@@ -17,7 +18,12 @@ const PAGINA_VACIA: PaginaResponse<BeatResponse> = {
 };
 
 export function CatalogoPage() {
-  const [filtros, setFiltros] = useState<Omit<FiltrosCatalogo, "page" | "size">>({});
+  const [params, setParams] = useSearchParams();
+  const tituloInicial = params.get("titulo") ?? "";
+
+  const [filtros, setFiltros] = useState<Omit<FiltrosCatalogo, "page" | "size">>(() =>
+    tituloInicial ? { titulo: tituloInicial } : {},
+  );
   const [pagina, setPagina] = useState(0);
 
   const fetcher = useCallback(
@@ -31,26 +37,34 @@ export function CatalogoPage() {
   function alBuscar(nuevosFiltros: Omit<FiltrosCatalogo, "page" | "size">) {
     setPagina(0);
     setFiltros(nuevosFiltros);
+    if (nuevosFiltros.titulo) {
+      setParams({ titulo: nuevosFiltros.titulo });
+    } else {
+      setParams({});
+    }
   }
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-neutral-900">Catálogo de beats</h1>
-        <p className="mt-1 text-sm text-neutral-600">Explora los beats publicados y escucha su preview.</p>
+      <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
+        <h1 className="text-2xl font-bold tracking-tight">Tienda de beats</h1>
+        <p className="mt-1 text-sm text-neutral-600">
+          Explora los beats publicados, escucha el preview y compra tu licencia con contrato.
+        </p>
+        <div className="mt-4">
+          <FiltrosCatalogoForm onBuscar={alBuscar} />
+        </div>
       </div>
 
-      <FiltrosCatalogoForm onBuscar={alBuscar} />
-
-      <div className="mt-6">
+      <div className="mt-5">
         {error && <FormAlert mensaje={error} />}
 
         {cargando && <p className="py-10 text-center text-neutral-500">Cargando beats...</p>}
 
         {!cargando && !error && resultado.contenido.length === 0 && (
-          <p className="py-10 text-center text-neutral-500">
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white py-12 text-center text-neutral-500">
             No se encontraron beats con esos filtros.
-          </p>
+          </div>
         )}
 
         {!cargando && resultado.contenido.length > 0 && (

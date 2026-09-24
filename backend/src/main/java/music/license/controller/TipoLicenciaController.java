@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 
 import music.license.dto.licencia.TipoLicenciaRequest;
 import music.license.dto.licencia.TipoLicenciaResponse;
+import music.license.model.TipoLicencia;
 import music.license.model.Usuario;
 import music.license.service.TipoLicenciaService;
 
@@ -32,8 +34,13 @@ public class TipoLicenciaController {
     }
 
     @GetMapping
-    public List<TipoLicenciaResponse> obtenerTodos(@AuthenticationPrincipal Usuario usuario) {
-        return tipoLicenciaService.obtenerTodosVisibles(usuario).stream()
+    public List<TipoLicenciaResponse> obtenerTodos(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(required = false) Long beatId) {
+        List<TipoLicencia> licencias = (beatId != null)
+                ? tipoLicenciaService.obtenerPorBeatVisibles(beatId, usuario)
+                : tipoLicenciaService.obtenerTodosVisibles(usuario);
+        return licencias.stream()
                 .map(TipoLicenciaResponse::desde)
                 .toList();
     }
