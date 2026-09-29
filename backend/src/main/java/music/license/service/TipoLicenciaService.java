@@ -35,6 +35,16 @@ public class TipoLicenciaService {
                 .toList();
     }
 
+    /**
+     * Licencias visibles de un beat puntual. Evita que el frontend tenga que
+     * descargar todas las licencias y filtrar en el cliente.
+     */
+    public List<TipoLicencia> obtenerPorBeatVisibles(Long beatId, Usuario solicitante) {
+        return tipoLicenciaRepository.findByBeatId(beatId).stream()
+                .filter(t -> esVisible(t.getBeat(), solicitante))
+                .toList();
+    }
+
     public TipoLicencia obtenerPorIdVisible(Long id, Usuario solicitante) {
         TipoLicencia tipoLicencia = obtenerPorId(id);
 

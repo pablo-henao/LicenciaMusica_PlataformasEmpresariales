@@ -2,6 +2,17 @@
 // errores del backend (ApiError: {status, error, mensaje, detalles}) a una
 // excepcion de TypeScript que las pantallas puedan mostrar directo.
 
+// Base de la API configurable para producción:
+// - En desarrollo se deja VACÍA para usar rutas relativas ("/api/...") y que el
+//   proxy de Vite (vite.config.ts) las reenvíe a http://localhost:8080 sin CORS.
+// - En producción (dist/ servido en otro host) define VITE_API_URL, ej:
+//   VITE_API_URL=https://api.mi-dominio.com  (sin "/" final)
+// Ver frontend/.env.example
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+
+export const MENSAJE_SERVIDOR_CAIDO =
+  "El servidor no responde. Verifica que el backend esté corriendo en http://localhost:8080.";
+
 const TOKEN_KEY = "licencia_token";
 
 export function getToken(): string | null {
@@ -49,10 +60,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(`${API_BASE}${path}`, {
     method: options.method ?? "GET",
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  }).catch(() => {
+    // fetch solo rechaza por fallos de red (backend apagado, DNS, CORS...):
+    // se traduce a un mensaje accionable en vez del TypeError genérico.
+    throw new ApiError(0, MENSAJE_SERVIDOR_CAIDO);
   });
 
   if (response.status === 204) {
@@ -115,7 +130,9 @@ export async function descargarArchivo(path: string, nombreArchivo: string): Pro
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(path, { headers });
+  const response = await fetch(`${API_BASE}${path}`, { headers }).catch(() => {
+    throw new ApiError(0, MENSAJE_SERVIDOR_CAIDO);
+  });
 
   if (!response.ok) {
     throw new ApiError(response.status, "No se pudo descargar el archivo");

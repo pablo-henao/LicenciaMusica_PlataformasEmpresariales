@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Archivo Black", "Arial Black", system-ui, sans-serif;
 
   --color-brand-50: #f5f0ff;
   --color-brand-100: #ece0ff;
@@ -13,8 +14,69 @@
   --color-brand-700: #5b2c91;
   --color-brand-800: #45216e;
   --color-brand-900: #301950;
+
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+
+  --color-ink-900: #0c0c12;
+  --color-ink-800: #14141c;
 }
 
 body {
-  @apply bg-neutral-50 text-neutral-900 antialiased;
+  @apply bg-[#f3efe9] text-neutral-900 antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Hero oscuro estilo TIDE: fondo noche de estudio sin depender de imágenes externas */
+.hero-tide {
+  background:
+    radial-gradient(1200px 500px at 70% -10%, rgba(34, 211, 238, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 15% 110%, rgba(138, 63, 252, 0.25), transparent 60%),
+    linear-gradient(180deg, #0c0c12 0%, #14141c 55%, #1c1526 100%);
+}
+
+/* Hero cinematográfico estilo Winzy: cielo nocturno ámbar/cobre, 100% CSS */
+.hero-winzy {
+  background:
+    radial-gradient(1000px 420px at 50% 108%, rgba(245, 158, 11, 0.32), transparent 65%),
+    radial-gradient(700px 380px at 82% 100%, rgba(194, 120, 60, 0.22), transparent 60%),
+    radial-gradient(900px 480px at 12% -10%, rgba(56, 90, 160, 0.28), transparent 60%),
+    linear-gradient(180deg, #070d1a 0%, #0b1322 45%, #141021 78%, #1d130c 100%);
+}
+
+.hero-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.07;
+}
+
+/* Palabra gigante de fondo (el "EGIPTO" de la referencia) */
+.hero-word {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(4rem, 17.5vw, 15rem);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 20%, rgba(255, 255, 255, 0.12) 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  user-select: none;
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 30%, transparent 75%);
+}
+
+.text-stroke {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.35);
+  color: transparent;
 }

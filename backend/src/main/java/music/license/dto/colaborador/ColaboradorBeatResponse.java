@@ -8,6 +8,7 @@ public class ColaboradorBeatResponse {
 
     private Long id;
     private Long beatId;
+    private String beatTitulo;
     private Long usuarioId;
     private String usuarioNombre;
     private String rol;
@@ -23,6 +24,7 @@ public class ColaboradorBeatResponse {
 
         if (colaboradorBeat.getBeat() != null) {
             dto.beatId = colaboradorBeat.getBeat().getId();
+            dto.beatTitulo = colaboradorBeat.getBeat().getTitulo();
         }
 
         if (colaboradorBeat.getUsuario() != null) {
@@ -39,6 +41,10 @@ public class ColaboradorBeatResponse {
 
     public Long getBeatId() {
         return beatId;
+    }
+
+    public String getBeatTitulo() {
+        return beatTitulo;
     }
 
     public Long getUsuarioId() {

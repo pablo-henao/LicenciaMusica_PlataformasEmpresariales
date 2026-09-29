@@ -3,10 +3,11 @@ import type { FiltrosCatalogo } from "../../api/beats";
 
 interface FiltrosCatalogoFormProps {
   onBuscar: (filtros: Omit<FiltrosCatalogo, "page" | "size">) => void;
+  tituloInicial?: string;
 }
 
-export function FiltrosCatalogoForm({ onBuscar }: FiltrosCatalogoFormProps) {
-  const [titulo, setTitulo] = useState("");
+export function FiltrosCatalogoForm({ onBuscar, tituloInicial = "" }: FiltrosCatalogoFormProps) {
+  const [titulo, setTitulo] = useState(tituloInicial);
   const [genero, setGenero] = useState("");
   const [bpmMin, setBpmMin] = useState("");
   const [bpmMax, setBpmMax] = useState("");
