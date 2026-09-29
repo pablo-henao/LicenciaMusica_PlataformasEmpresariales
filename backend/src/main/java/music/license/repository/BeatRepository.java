@@ -14,10 +14,10 @@ public interface BeatRepository extends JpaRepository<Beat, Long> {
     @Query("""
             SELECT b FROM Beat b
             WHERE b.estado = :estado
-            AND (:genero IS NULL OR LOWER(b.genero) = LOWER(:genero))
+            AND (:genero IS NULL OR LOWER(b.genero) = LOWER(CAST(:genero AS string)))
             AND (:bpmMin IS NULL OR b.bpm >= :bpmMin)
             AND (:bpmMax IS NULL OR b.bpm <= :bpmMax)
-            AND (:titulo IS NULL OR LOWER(b.titulo) LIKE LOWER(CONCAT('%', :titulo, '%')))
+            AND (:titulo IS NULL OR LOWER(b.titulo) LIKE LOWER(CONCAT('%', CAST(:titulo AS string), '%')))
             """)
     Page<Beat> buscarCatalogo(
             @Param("estado") EstadoBeat estado,

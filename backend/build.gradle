@@ -28,6 +28,7 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 	implementation 'com.github.librepdf:openpdf:3.0.5'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+	implementation 'org.springframework.boot:spring-boot-flyway'
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	compileOnly 'org.projectlombok:lombok'
