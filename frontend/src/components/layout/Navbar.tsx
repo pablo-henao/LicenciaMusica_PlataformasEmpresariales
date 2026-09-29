@@ -66,30 +66,23 @@ export function Navbar() {
           <NavLink to={usuario ? "/catalogo" : "/registro"} className={linkClase}>
             Beats
           </NavLink>
-          <a
-            href="/#licencias"
-            className="rounded-full px-3 py-1.5 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
-          >
+          <NavLink to="/licencias" className={linkClase}>
             Licencias
-          </a>
-          <a
-            href="/#splits"
-            className="rounded-full px-3 py-1.5 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
-          >
-            Splits
-          </a>
-          <a
-            href="/#nosotros"
-            className="rounded-full px-3 py-1.5 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
-          >
-            Nosotros
-          </a>
-          <NavLink
-            to={usuario?.rol === "PRODUCTOR" ? "/mis-beats" : "/registro"}
-            className={linkClase}
-          >
-            Vende tu beat
           </NavLink>
+          <NavLink to="/splits" className={linkClase}>
+            Splits
+          </NavLink>
+          <NavLink to="/nosotros" className={linkClase}>
+            Nosotros
+          </NavLink>
+          {(!usuario || usuario.rol !== "COMPRADOR") && (
+            <NavLink
+              to={usuario?.rol === "PRODUCTOR" ? "/mis-beats" : "/registro"}
+              className={linkClase}
+            >
+              Vende tu beat
+            </NavLink>
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
@@ -170,9 +163,11 @@ export function Navbar() {
           <NavLink to="/mis-compras" className={linkClase}>
             Compras
           </NavLink>
-          <NavLink to="/mis-invitaciones" className={linkClase}>
-            Mis splits
-          </NavLink>
+          {usuario.rol !== "COMPRADOR" && (
+            <NavLink to="/mis-invitaciones" className={linkClase}>
+              Mis splits
+            </NavLink>
+          )}
           <NavLink to="/notificaciones" className={linkClase}>
             Avisos{noLeidas > 0 ? ` (${noLeidas})` : ""}
           </NavLink>

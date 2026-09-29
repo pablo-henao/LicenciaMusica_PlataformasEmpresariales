@@ -15,6 +15,9 @@ import { EditarBeatPage } from "./pages/beats/EditarBeatPage";
 import { GestionarBeatPage } from "./pages/beats/GestionarBeatPage";
 import { MisInvitacionesPage } from "./pages/creditos/MisInvitacionesPage";
 import { NotificacionesPage } from "./pages/notificaciones/NotificacionesPage";
+import { LicenciasPage } from "./pages/info/LicenciasPage";
+import { SplitsPage } from "./pages/info/SplitsPage";
+import { NosotrosPage } from "./pages/info/NosotrosPage";
 import { AdminPage } from "./pages/admin/AdminPage";
 
 function App() {
@@ -24,6 +27,9 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<HomePage />} />
+            <Route path="licencias" element={<LicenciasPage />} />
+            <Route path="splits" element={<SplitsPage />} />
+            <Route path="nosotros" element={<NosotrosPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="registro" element={<RegisterPage />} />
             <Route

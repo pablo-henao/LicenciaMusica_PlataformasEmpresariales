@@ -11,6 +11,8 @@ export function HomePage() {
   const { usuario } = useAuth();
   const destinoTienda = usuario ? "/catalogo" : "/registro";
   const destinoVender = usuario?.rol === "PRODUCTOR" ? "/mis-beats" : "/registro";
+  const mostrarVender = !usuario || usuario.rol !== "COMPRADOR";
+  const esProductor = usuario?.rol === "PRODUCTOR" || usuario?.rol === "ADMIN";
 
   return (
     <div className="space-y-5">
@@ -61,6 +63,9 @@ export function HomePage() {
           <p className="mt-1 text-sm text-neutral-600">
             Exclusiva, no exclusiva o comercial limitada — con precio y condiciones por beat.
           </p>
+          <Link to="/licencias" className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
+            Ver licencias →
+          </Link>
         </div>
         <div id="splits" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-5">
           <p className="text-2xl">◈</p>
@@ -69,6 +74,9 @@ export function HomePage() {
             Declara productor, co-productor, vocalista, mezcla y mastering. Todos aceptan antes de
             vender.
           </p>
+          <Link to="/splits" className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
+            Ver splits →
+          </Link>
         </div>
         <div className="rounded-2xl border border-neutral-200 bg-white p-5">
           <p className="text-2xl">⬣</p>
@@ -76,6 +84,9 @@ export function HomePage() {
           <p className="mt-1 text-sm text-neutral-600">
             Cada checkout genera un contrato congelado con las partes, la obra y los términos.
           </p>
+          <Link to="/nosotros" className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
+            Conócenos →
+          </Link>
         </div>
       </section>
 
@@ -108,13 +119,15 @@ export function HomePage() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            to={destinoVender}
-            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-200"
-          >
-            Vende tu primer beat
-          </Link>
-          {usuario && (
+          {mostrarVender && (
+            <Link
+              to={destinoVender}
+              className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-200"
+            >
+              Vende tu primer beat
+            </Link>
+          )}
+          {esProductor && (
             <Link
               to="/mis-invitaciones"
               className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
