@@ -1,75 +1,69 @@
-# React + TypeScript + Vite
+# Licencia+ — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SPA en React + TypeScript + Vite que consume la API REST del backend (Spring Boot). No hay datos hardcodeados ni mocks: todo el catálogo, la autenticación y los formularios se conectan en tiempo real contra el backend.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+React 19 · TypeScript · Vite · React Router · Tailwind CSS v4 · fetch nativo (sin Axios).
 
-## React Compiler
+## 1. Instalar dependencias
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 2. Configurar la URL del backend
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+En desarrollo no hace falta ningún `.env`: el proxy de Vite (`vite.config.ts`) reenvía las rutas relativas `/api/...` a `http://localhost:8080`, así que solo el backend debe estar corriendo.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Para apuntar a un backend en otro host (por ejemplo, un `dist/` de producción servido aparte), copia `.env.example` a `.env` y define:
+
+```bash
+VITE_API_URL=https://tu-backend
+```
+
+(sin `/` final). Ver `.env.example` en la raíz de esta carpeta.
+
+## 3. Ejecutar el proyecto
+
+```bash
+npm run dev
+```
+
+Abre `http://localhost:5173`. El backend debe estar corriendo en `http://localhost:8080` (ver el README de `backend/` en la raíz del repositorio) — si no, el login y todas las pantallas muestran "El servidor no responde" en vez de fallar en silencio.
+
+## Otros comandos
+
+```bash
+npm run build   # tsc -b && vite build — compila y empaqueta a dist/
+npm run lint    # eslint .
+npm run preview # sirve dist/ localmente para probar el build de producción
+```
+
+## Estructura
 
 ```
+src/
+├── api/          # Un módulo por recurso del backend (beats.ts, compras.ts, ...).
+│                 # Toda llamada HTTP vive acá — los componentes nunca llaman fetch directo.
+├── components/   # UI reutilizable, agrupada por dominio (beats/, colaboradores/, layout/).
+├── context/      # AuthContext: token JWT, usuario autenticado, login/registro/logout.
+├── hooks/        # useApiFetch: patrón estándar de "cargar datos al montar".
+├── pages/        # Una carpeta por sección (auth/, catalogo/, beats/, compras/, admin/, ...).
+└── utils/        # Formateo de precios, fechas y etiquetas de los enums del backend.
+```
+
+## Autenticación
+
+El login (`POST /api/auth/login`) devuelve un JWT que se guarda en `localStorage` (`src/api/client.ts`). Un único punto centralizado (`request()` en ese mismo archivo, equivalente a un interceptor de Axios) adjunta `Authorization: Bearer <token>` a cada petición. Al recargar la página, `AuthContext` restaura la sesión llamando a `GET /api/auth/me` si hay token guardado. Un 401 limpia el token automáticamente; "Cerrar sesión" en la barra de navegación lo hace de forma explícita y redirige a `/login`.
+
+## Flujo de prueba end-to-end
+
+Con el backend corriendo y los datos demo cargados (`docs/seed-demo.sql` en la raíz del repo, clave `demo1234` para todos):
+
+1. Entra como productor (`djkalu@demo.com`) → **Mis beats** → crea uno nuevo o gestiona uno existente: define licencias, invita a un colaborador por email, abre el acuerdo de créditos.
+2. Entra como el colaborador invitado (`yani@demo.com`) → **Mis splits** → acepta su porcentaje.
+3. Como productor, publica el beat una vez el split suma 100% y todos aceptaron.
+4. Entra como comprador (`mcsueno@demo.com`) → **Tienda** → abre el beat → **Comprar**: esto crea la compra en estado `PENDIENTE`.
+5. En **Mis compras**, pulsa **Completar compra** para el checkout (genera el contrato en PDF) y descárgalo.
+6. Como productor, revisa **Ventas**; como `admin@demo.com`, revisa **Admin** (vista de solo lectura de beats, compras y acuerdos).

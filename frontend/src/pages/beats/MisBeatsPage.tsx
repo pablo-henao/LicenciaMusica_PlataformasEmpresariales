@@ -51,76 +51,80 @@ export function MisBeatsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">Mis beats</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Mis beats</h1>
           <p className="mt-1 text-sm text-neutral-600">
             Gestiona tus beats, incluidos los que todavía no publicaste.
           </p>
         </div>
         <Link
           to="/beats/nuevo"
-          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
+          className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
         >
           + Nuevo beat
         </Link>
       </div>
 
-      {(error || errorAccion) && <FormAlert mensaje={error ?? errorAccion ?? ""} />}
+      <div className="mt-5">
+        {(error || errorAccion) && <FormAlert mensaje={error ?? errorAccion ?? ""} />}
 
-      {cargando && <p className="py-10 text-center text-neutral-500">Cargando...</p>}
+        {cargando && <p className="py-10 text-center text-neutral-500">Cargando...</p>}
 
-      {!cargando && resultado.contenido.length === 0 && (
-        <p className="py-10 text-center text-neutral-500">Todavía no has creado ningún beat.</p>
-      )}
-
-      <div className="space-y-3">
-        {resultado.contenido.map((beat) => (
-          <div
-            key={beat.id}
-            className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-neutral-900">{beat.titulo}</p>
-                <Badge variante={beat.estado === "PUBLICADO" ? "success" : "neutral"}>
-                  {beat.estado === "PUBLICADO" ? "Publicado" : "Borrador"}
-                </Badge>
-              </div>
-              <p className="mt-1 text-sm text-neutral-500">
-                {beat.genero} · {beat.bpm} BPM
-              </p>
-            </div>
-
-            <div className="flex shrink-0 gap-2">
-              <Link
-                to={`/mis-beats/${beat.id}`}
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
-              >
-                Gestionar
-              </Link>
-              <Link
-                to={`/beats/${beat.id}/editar`}
-                className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
-              >
-                Editar
-              </Link>
-              {beat.estado === "BORRADOR" && (
-                <button
-                  type="button"
-                  disabled={publicando === beat.id}
-                  onClick={() => publicar(beat)}
-                  className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
-                >
-                  {publicando === beat.id ? "Publicando..." : "Publicar"}
-                </button>
-              )}
-            </div>
+        {!cargando && resultado.contenido.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white py-12 text-center text-neutral-500">
+            Todavía no has creado ningún beat.
           </div>
-        ))}
-      </div>
+        )}
 
-      <Pagination pagina={pagina} totalPaginas={resultado.totalPaginas} onCambiar={setPagina} />
+        <div className="space-y-3">
+          {resultado.contenido.map((beat) => (
+            <div
+              key={beat.id}
+              className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold">{beat.titulo}</p>
+                  <Badge variante={beat.estado === "PUBLICADO" ? "success" : "neutral"}>
+                    {beat.estado === "PUBLICADO" ? "Publicado" : "Borrador"}
+                  </Badge>
+                </div>
+                <p className="mt-1 text-sm text-neutral-500">
+                  {beat.genero} · {beat.bpm} BPM
+                </p>
+              </div>
+
+              <div className="flex shrink-0 gap-2">
+                <Link
+                  to={`/mis-beats/${beat.id}`}
+                  className="rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+                >
+                  Gestionar
+                </Link>
+                <Link
+                  to={`/beats/${beat.id}/editar`}
+                  className="rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+                >
+                  Editar
+                </Link>
+                {beat.estado === "BORRADOR" && (
+                  <button
+                    type="button"
+                    disabled={publicando === beat.id}
+                    onClick={() => publicar(beat)}
+                    className="rounded-full bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    {publicando === beat.id ? "Publicando..." : "Publicar"}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Pagination pagina={pagina} totalPaginas={resultado.totalPaginas} onCambiar={setPagina} />
+      </div>
     </div>
   );
 }

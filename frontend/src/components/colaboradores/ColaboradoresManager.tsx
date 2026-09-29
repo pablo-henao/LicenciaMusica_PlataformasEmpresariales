@@ -79,14 +79,14 @@ export function ColaboradoresManager({ beatId }: ColaboradoresManagerProps) {
   return (
     <section>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-neutral-900">Colaboradores y créditos</h2>
+        <h2 className="text-lg font-bold">Colaboradores y créditos</h2>
         <button
           type="button"
           onClick={() => {
             setMostrarInvitar((valor) => !valor);
             setEditando(null);
           }}
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700"
+          className="rounded-full bg-brand-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700"
         >
           {mostrarInvitar ? "Cancelar" : "+ Invitar colaborador"}
         </button>
@@ -95,7 +95,7 @@ export function ColaboradoresManager({ beatId }: ColaboradoresManagerProps) {
       {error && <div className="mt-3"><FormAlert mensaje={error} /></div>}
       {errorAccion && <div className="mt-3"><FormAlert mensaje={errorAccion} /></div>}
 
-      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
+      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3.5">
         <span className="text-sm font-medium text-neutral-700">Acuerdo de créditos:</span>
 
         {!acuerdo && (
@@ -105,7 +105,7 @@ export function ColaboradoresManager({ beatId }: ColaboradoresManagerProps) {
               type="button"
               disabled={abriendoAcuerdo}
               onClick={abrir}
-              className="rounded-md border border-brand-300 px-3 py-1 text-sm font-medium text-brand-700 transition hover:bg-brand-50 disabled:opacity-50"
+              className="rounded-full border border-brand-300 px-3.5 py-1 text-sm font-medium text-brand-700 transition hover:bg-brand-50 disabled:opacity-50"
             >
               {abriendoAcuerdo ? "Abriendo..." : "Abrir acuerdo"}
             </button>
@@ -157,7 +157,7 @@ export function ColaboradoresManager({ beatId }: ColaboradoresManagerProps) {
           ) : (
             <div
               key={colaborador.id}
-              className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-3.5 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
                 <div className="flex items-center gap-2">
@@ -177,14 +177,14 @@ export function ColaboradoresManager({ beatId }: ColaboradoresManagerProps) {
                     setEditando(colaborador.id);
                     setMostrarInvitar(false);
                   }}
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+                  className="rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
                 >
                   Editar
                 </button>
                 <button
                   type="button"
                   onClick={() => eliminar(colaborador.id)}
-                  className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-50"
+                  className="rounded-full border border-red-200 px-3.5 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-50"
                 >
                   Quitar
                 </button>

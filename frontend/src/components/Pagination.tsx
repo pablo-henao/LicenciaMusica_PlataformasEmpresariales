@@ -15,7 +15,7 @@ export function Pagination({ pagina, totalPaginas, onCambiar }: PaginationProps)
         type="button"
         disabled={pagina === 0}
         onClick={() => onCambiar(pagina - 1)}
-        className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
       >
         Anterior
       </button>
@@ -26,7 +26,7 @@ export function Pagination({ pagina, totalPaginas, onCambiar }: PaginationProps)
         type="button"
         disabled={pagina >= totalPaginas - 1}
         onClick={() => onCambiar(pagina + 1)}
-        className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
       >
         Siguiente
       </button>

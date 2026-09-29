@@ -15,7 +15,7 @@ export function HistorialCreditos({ beatId }: HistorialCreditosProps) {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-neutral-900">Historial de créditos</h2>
+      <h2 className="text-lg font-bold">Historial de créditos</h2>
       <p className="mt-1 text-sm text-neutral-600">Quién propuso, aceptó, rechazó o modificó el acuerdo, en orden.</p>
 
       {error && <div className="mt-3"><FormAlert mensaje={error} /></div>}

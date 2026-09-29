@@ -39,7 +39,7 @@ export function LicenciaForm({ beatId, licencia, onGuardado, onCancelar }: Licen
   }
 
   return (
-    <form onSubmit={alEnviar} className="space-y-3 rounded-lg border border-brand-200 bg-brand-50/40 p-3">
+    <form onSubmit={alEnviar} className="space-y-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4">
       {error && <FormAlert mensaje={error.message} detalles={error.detalles} />}
 
       <div className="grid grid-cols-2 gap-3">
@@ -51,7 +51,7 @@ export function LicenciaForm({ beatId, licencia, onGuardado, onCancelar }: Licen
             id="tipoLicencia"
             value={tipo}
             onChange={(e) => setTipo(e.target.value as TipoLicenciaEnum)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="mt-1 w-full rounded-xl border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           >
             {OPCIONES_TIPO_LICENCIA.map((opcion) => (
               <option key={opcion} value={opcion}>
@@ -72,7 +72,7 @@ export function LicenciaForm({ beatId, licencia, onGuardado, onCancelar }: Licen
             min={1}
             value={precio}
             onChange={(e) => setPrecio(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="mt-1 w-full rounded-xl border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
       </div>
@@ -86,7 +86,7 @@ export function LicenciaForm({ beatId, licencia, onGuardado, onCancelar }: Licen
           rows={2}
           value={condiciones}
           onChange={(e) => setCondiciones(e.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
@@ -94,7 +94,7 @@ export function LicenciaForm({ beatId, licencia, onGuardado, onCancelar }: Licen
         <button
           type="submit"
           disabled={guardando}
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
+          className="rounded-full bg-brand-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
         >
           {guardando ? "Guardando..." : licencia ? "Guardar cambios" : "Crear licencia"}
         </button>
@@ -102,7 +102,7 @@ export function LicenciaForm({ beatId, licencia, onGuardado, onCancelar }: Licen
           <button
             type="button"
             onClick={onCancelar}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+            className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
           >
             Cancelar
           </button>

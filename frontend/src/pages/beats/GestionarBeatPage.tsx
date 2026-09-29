@@ -31,24 +31,26 @@ export function GestionarBeatPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10">
+    <div className="mx-auto max-w-3xl space-y-8">
       <div>
         <Link to="/mis-beats" className="text-sm font-medium text-brand-600 hover:underline">
           ← Volver a mis beats
         </Link>
 
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-neutral-900">{beat.titulo}</h1>
-          <Badge variante={beat.estado === "PUBLICADO" ? "success" : "neutral"}>
-            {beat.estado === "PUBLICADO" ? "Publicado" : "Borrador"}
-          </Badge>
+        <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight">{beat.titulo}</h1>
+            <Badge variante={beat.estado === "PUBLICADO" ? "success" : "neutral"}>
+              {beat.estado === "PUBLICADO" ? "Publicado" : "Borrador"}
+            </Badge>
+          </div>
+          <p className="mt-1 text-sm text-neutral-600">
+            {beat.genero} · {beat.bpm} BPM ·{" "}
+            <Link to={`/beats/${beat.id}/editar`} className="text-brand-600 hover:underline">
+              Editar datos básicos
+            </Link>
+          </p>
         </div>
-        <p className="mt-1 text-sm text-neutral-600">
-          {beat.genero} · {beat.bpm} BPM ·{" "}
-          <Link to={`/beats/${beat.id}/editar`} className="text-brand-600 hover:underline">
-            Editar datos básicos
-          </Link>
-        </p>
       </div>
 
       <LicenciasManager beatId={beatId} />

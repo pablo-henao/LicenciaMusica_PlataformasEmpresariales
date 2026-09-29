@@ -54,7 +54,7 @@ export function BeatForm({ valoresIniciales, onGuardar, textoBoton }: BeatFormPr
           required
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
@@ -69,7 +69,7 @@ export function BeatForm({ valoresIniciales, onGuardar, textoBoton }: BeatFormPr
           placeholder="Ej: Trap, Reggaetón, Dembow, Bachata"
           value={genero}
           onChange={(e) => setGenero(e.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
@@ -85,7 +85,7 @@ export function BeatForm({ valoresIniciales, onGuardar, textoBoton }: BeatFormPr
           max={300}
           value={bpm}
           onChange={(e) => setBpm(e.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
@@ -99,14 +99,14 @@ export function BeatForm({ valoresIniciales, onGuardar, textoBoton }: BeatFormPr
           placeholder="https://..."
           value={urlPreview}
           onChange={(e) => setUrlPreview(e.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
       <button
         type="submit"
         disabled={guardando}
-        className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
+        className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
       >
         {guardando ? "Guardando..." : textoBoton}
       </button>

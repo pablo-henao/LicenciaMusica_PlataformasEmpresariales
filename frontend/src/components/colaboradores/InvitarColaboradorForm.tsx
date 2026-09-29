@@ -39,7 +39,7 @@ export function InvitarColaboradorForm({ beatId, onInvitado }: InvitarColaborado
   }
 
   return (
-    <form onSubmit={alEnviar} className="space-y-3 rounded-lg border border-brand-200 bg-brand-50/40 p-3">
+    <form onSubmit={alEnviar} className="space-y-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4">
       {error && <FormAlert mensaje={error.message} detalles={error.detalles} />}
 
       <div>
@@ -53,7 +53,7 @@ export function InvitarColaboradorForm({ beatId, onInvitado }: InvitarColaborado
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="colaborador@ejemplo.com"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-1 w-full rounded-xl border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
@@ -66,7 +66,7 @@ export function InvitarColaboradorForm({ beatId, onInvitado }: InvitarColaborado
             id="rolColaborador"
             value={rol}
             onChange={(e) => setRol(e.target.value as RolColaborador)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="mt-1 w-full rounded-xl border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           >
             {OPCIONES_ROL_COLABORADOR.map((opcion) => (
               <option key={opcion} value={opcion}>
@@ -89,7 +89,7 @@ export function InvitarColaboradorForm({ beatId, onInvitado }: InvitarColaborado
             step="0.01"
             value={porcentaje}
             onChange={(e) => setPorcentaje(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="mt-1 w-full rounded-xl border border-neutral-300 px-2.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ export function InvitarColaboradorForm({ beatId, onInvitado }: InvitarColaborado
       <button
         type="submit"
         disabled={enviando}
-        className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
+        className="rounded-full bg-brand-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:opacity-50"
       >
         {enviando ? "Invitando..." : "Invitar"}
       </button>

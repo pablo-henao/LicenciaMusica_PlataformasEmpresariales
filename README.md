@@ -85,8 +85,9 @@ Incluye 3 beats publicados con licencias, 1 borrador con split pendiente
    licencias, invitar colaborador por email, abrir acuerdo.
 2. Entra como `yani@demo.com` → **Splits** → acepta el 30% pendiente.
 3. Como productor → **Publicar** (exige 100% + todos aceptados).
-4. Como `mcsueno@demo.com` → **Tienda** → beat → **Comprar ahora** →
-   descarga el **contrato PDF** → revisa **Compras** y **Avisos**.
+4. Como `mcsueno@demo.com` → **Tienda** → beat → **Comprar** (crea la compra
+   en `PENDIENTE`) → en **Mis compras**, **Completar compra** genera y
+   descarga el **contrato PDF** → revisa **Avisos**.
 5. Como productor → **Ventas**; como `admin@demo.com` → **Admin**.
 
 ## Diseño
